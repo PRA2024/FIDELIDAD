@@ -13,8 +13,8 @@ let isCampanasInitialized = false;
 function getNotifConfig() {
   // Definí estas variables en index.html antes de cargar app.js:
   // <script>window.__RAMPET__={ NOTIF_BASE:'https://rampet-notification-server-three.vercel.app', API_KEY:'' };</script>
-  const base = window.__RAMPET__?.NOTIF_BASE || 'https://rampet-notification-server-three.vercel.app';
-  const key  = window.__RAMPET__?.API_KEY   || ''; // si está vacío, igual intentamos por CORS allowlist
+  const base = window.ADMIN_CONFIG?.apiUrl || 'https://rampet-notification-server-three.vercel.app';
+  const key = window.__RAMPET__?.API_KEY || ''; // si está vacío, igual intentamos por CORS allowlist
   return { base, key };
 }
 const isEditMode = () => !!campanaEnEdicionId;
@@ -284,63 +284,63 @@ export function initCampanas() {
 // ===================== UTILIDADES DE FORM =====================
 
 function leerDatosDelFormulario() {
-  const nombre     = document.getElementById('campana-nombre')?.value.trim() || '';
-  const tipo       = document.getElementById('campana-tipo')?.value || 'informativa';
-  const valorRaw   = document.getElementById('campana-valor')?.value;
-  const valor      = valorRaw !== '' && valorRaw != null ? Number(valorRaw) : null;
-  const bannerUrl  = sanitizeUrl(document.getElementById('campana-banner-url')?.value.trim() || '');
+  const nombre = document.getElementById('campana-nombre')?.value.trim() || '';
+  const tipo = document.getElementById('campana-tipo')?.value || 'informativa';
+  const valorRaw = document.getElementById('campana-valor')?.value;
+  const valor = valorRaw !== '' && valorRaw != null ? Number(valorRaw) : null;
+  const bannerUrl = sanitizeUrl(document.getElementById('campana-banner-url')?.value.trim() || '');
   const destinoUrl = sanitizeUrl(document.getElementById('campana-destino-url')?.value.trim() || '');
-  const cuerpo     = document.getElementById('campana-cuerpo')?.value.trim() || '';
-  const visibilidad= document.getElementById('campana-visibilidad')?.value || 'publica';
+  const cuerpo = document.getElementById('campana-cuerpo')?.value.trim() || '';
+  const visibilidad = document.getElementById('campana-visibilidad')?.value || 'publica';
   const estaActiva = !!document.getElementById('campana-habilitada')?.checked;
 
   const programada = !!document.getElementById('programar-publicacion')?.checked;
 
   let fechaInicio = '';
-  let fechaFin    = '';
+  let fechaFin = '';
   if (programada) {
     fechaInicio = document.getElementById('campana-fecha-inicio')?.value || '';
-    fechaFin    = document.getElementById('campana-fecha-fin')?.value || '';
-    if (!fechaInicio) return { esValido:false, mensajeError:'Definí la fecha de inicio.' };
+    fechaFin = document.getElementById('campana-fecha-fin')?.value || '';
+    if (!fechaInicio) return { esValido: false, mensajeError: 'Definí la fecha de inicio.' };
     if (fechaFin && fechaFin < fechaInicio) {
-      return { esValido:false, mensajeError:'La fecha fin no puede ser anterior a la de inicio.' };
+      return { esValido: false, mensajeError: 'La fecha fin no puede ser anterior a la de inicio.' };
     }
     if (!fechaFin) fechaFin = '2100-01-01';
   } else {
     fechaInicio = new Date().toISOString().split('T')[0];
-    fechaFin    = '2100-01-01';
+    fechaFin = '2100-01-01';
   }
 
   const notificar = !!document.getElementById('campana-enviar-notificacion-check')?.checked;
   const anuncioInmediato = !!document.getElementById('enviar-anuncio-inmediatamente')?.checked;
-  const anuncioProgramado= !!document.getElementById('programar-anuncio')?.checked;
+  const anuncioProgramado = !!document.getElementById('programar-anuncio')?.checked;
 
   let fechaAnuncio = '';
   if (notificar) {
     if (anuncioInmediato) {
-      fechaAnuncio = new Date().toISOString().slice(0,16); // yyyy-mm-ddTHH:MM
+      fechaAnuncio = new Date().toISOString().slice(0, 16); // yyyy-mm-ddTHH:MM
     } else if (anuncioProgramado) {
       fechaAnuncio = (document.getElementById('campana-fecha-anuncio')?.value || '').trim();
       if (!fechaAnuncio) {
-        return { esValido:false, mensajeError:'Ingresá fecha/hora del anuncio.' };
+        return { esValido: false, mensajeError: 'Ingresá fecha/hora del anuncio.' };
       }
     }
   }
 
   const frecuenciaRecordatorio = Number(document.getElementById('campana-frecuencia-recordatorio')?.value || 0);
-  const horasRecordatorioStr   = (document.getElementById('campana-horas-recordatorio')?.value || '').trim();
-  const horasRecordatorio      = horasRecordatorioStr
+  const horasRecordatorioStr = (document.getElementById('campana-horas-recordatorio')?.value || '').trim();
+  const horasRecordatorio = horasRecordatorioStr
     ? horasRecordatorioStr.split(',').map(s => s.trim()).filter(Boolean)
     : [];
 
   const destPrueba = !!document.getElementById('destinatarios-prueba')?.checked;
-  const listaDest  = (document.getElementById('destinatarios-prueba-lista')?.value || '')
+  const listaDest = (document.getElementById('destinatarios-prueba-lista')?.value || '')
     .split(',').map(s => s.trim()).filter(Boolean);
 
-  if (!nombre) return { esValido:false, mensajeError:'El nombre de la campaña es obligatorio.' };
+  if (!nombre) return { esValido: false, mensajeError: 'El nombre de la campaña es obligatorio.' };
   if (tipo !== 'informativa') {
     if (valor == null || Number.isNaN(valor)) {
-      return { esValido:false, mensajeError:'Ingresá el valor numérico de la promoción.' };
+      return { esValido: false, mensajeError: 'Ingresá el valor numérico de la promoción.' };
     }
   }
 
@@ -367,7 +367,7 @@ function leerDatosDelFormulario() {
     reenviar: !!document.getElementById('campana-reenviar-notificacion-check')?.checked
   };
 
-  return { esValido:true, mensajeError:'', campanaData, notificar, opcionesNotificacion };
+  return { esValido: true, mensajeError: '', campanaData, notificar, opcionesNotificacion };
 }
 
 // Resetea el formulario a valores por defecto (sin tocar la tabla)
@@ -383,13 +383,13 @@ function limpiarYResetearFormulario() {
   if (document.getElementById('campana-cuerpo')) document.getElementById('campana-cuerpo').value = '';
 
   const elPubInm = document.getElementById('publicar-inmediatamente');
-  const elProg   = document.getElementById('programar-publicacion');
+  const elProg = document.getElementById('programar-publicacion');
   if (elPubInm) elPubInm.checked = true;
-  if (elProg)   elProg.checked   = false;
+  if (elProg) elProg.checked = false;
   if (document.getElementById('campana-fecha-inicio')) document.getElementById('campana-fecha-inicio').value = '';
-  if (document.getElementById('campana-fecha-fin'))    document.getElementById('campana-fecha-fin').value    = '';
-  if (document.getElementById('campana-habilitada'))   document.getElementById('campana-habilitada').checked = true;
-  if (document.getElementById('campana-visibilidad'))  document.getElementById('campana-visibilidad').value  = 'publica';
+  if (document.getElementById('campana-fecha-fin')) document.getElementById('campana-fecha-fin').value = '';
+  if (document.getElementById('campana-habilitada')) document.getElementById('campana-habilitada').checked = true;
+  if (document.getElementById('campana-visibilidad')) document.getElementById('campana-visibilidad').value = 'publica';
 
   if (document.getElementById('campana-enviar-notificacion-check')) document.getElementById('campana-enviar-notificacion-check').checked = false;
   if (document.getElementById('enviar-anuncio-inmediatamente')) document.getElementById('enviar-anuncio-inmediatamente').checked = true;
@@ -404,18 +404,18 @@ function limpiarYResetearFormulario() {
 
   const titulo = document.getElementById('form-campana-titulo');
   if (titulo) titulo.textContent = 'Crear / Editar Campaña';
-  const btnCrear   = document.getElementById('crear-campana-btn');
+  const btnCrear = document.getElementById('crear-campana-btn');
   const botonesBox = document.getElementById('botones-edicion-campana');
   const btnGuardar = document.getElementById('guardar-campana-editada-btn');
-  const btnCancel  = document.getElementById('cancelar-edicion-campana-btn');
-  if (btnCrear)   btnCrear.style.display = 'inline-block';
+  const btnCancel = document.getElementById('cancelar-edicion-campana-btn');
+  if (btnCrear) btnCrear.style.display = 'inline-block';
   if (botonesBox) botonesBox.style.display = 'none';
   if (btnGuardar) btnGuardar.style.display = 'none';
-  if (btnCancel)  btnCancel.textContent = 'Cancelar Edición';
+  if (btnCancel) btnCancel.textContent = 'Cancelar Edición';
   document.querySelectorAll('.temp-edit-btn').forEach(b => b.remove());
 
   manejarVisibilidadCamposUX();
-  try { UI.habilitarFormularioCampana(true); } catch {}
+  try { UI.habilitarFormularioCampana(true); } catch { }
 }
 
 function manejarVisibilidadCamposUX() {
@@ -424,15 +424,15 @@ function manejarVisibilidadCamposUX() {
   if (valorBox) valorBox.style.display = (tipo === 'informativa') ? 'none' : 'block';
 
   const programada = !!document.getElementById('programar-publicacion')?.checked;
-  const fechasBox  = document.getElementById('programacion-fechas-container');
+  const fechasBox = document.getElementById('programacion-fechas-container');
   if (fechasBox) fechasBox.style.display = programada ? 'grid' : 'none';
 
   const notifOn = !!document.getElementById('campana-enviar-notificacion-check')?.checked;
-  const notifBox= document.getElementById('notification-settings-container');
+  const notifBox = document.getElementById('notification-settings-container');
   if (notifBox) notifBox.style.display = notifOn ? 'block' : 'none';
 
   const anuncioProg = !!document.getElementById('programar-anuncio')?.checked;
-  const anuncioBox  = document.getElementById('anuncio-fecha-container');
+  const anuncioBox = document.getElementById('anuncio-fecha-container');
   if (anuncioBox) anuncioBox.style.display = (notifOn && anuncioProg) ? 'block' : 'none';
 
   const freq = Number(document.getElementById('campana-frecuencia-recordatorio')?.value || 0);
@@ -466,17 +466,17 @@ function prepararFormularioParaEdicion(id) {
   const titulo = document.getElementById('form-campana-titulo');
   if (titulo) titulo.textContent = `Editando: ${campana.nombre}`;
 
-  const btnCrear   = document.getElementById('crear-campana-btn');
+  const btnCrear = document.getElementById('crear-campana-btn');
   const botonesBox = document.getElementById('botones-edicion-campana');
   const btnGuardar = document.getElementById('guardar-campana-editada-btn');
-  const btnCancel  = document.getElementById('cancelar-edicion-campana-btn');
+  const btnCancel = document.getElementById('cancelar-edicion-campana-btn');
 
-  if (btnCrear)   btnCrear.style.display = 'none';
+  if (btnCrear) btnCrear.style.display = 'none';
   if (botonesBox) botonesBox.style.display = 'flex';
   if (btnGuardar) btnGuardar.style.display = 'inline-block';
-  if (btnCancel)  btnCancel.textContent = 'Cancelar Edición';
+  if (btnCancel) btnCancel.textContent = 'Cancelar Edición';
 
-  try { UI.habilitarFormularioCampana(true); } catch {}
+  try { UI.habilitarFormularioCampana(true); } catch { }
   manejarVisibilidadCamposUX();
   window.scrollTo(0, 0);
 }
@@ -536,7 +536,7 @@ function calcularFechasRecordatorios(fechaInicio, fechaFin, cadaDias, horas) {
   try {
     if (!cadaDias || cadaDias <= 0) return out;
     const start = new Date(`${fechaInicio}T00:00:00`);
-    const end   = new Date(`${fechaFin}T23:59:59`);
+    const end = new Date(`${fechaFin}T23:59:59`);
     for (let d = new Date(start); d <= end; d.setDate(d.getDate() + cadaDias)) {
       if (Array.isArray(horas) && horas.length) {
         for (const h of horas) {
@@ -549,6 +549,6 @@ function calcularFechasRecordatorios(fechaInicio, fechaFin, cadaDias, horas) {
         out.push(new Date(d));
       }
     }
-  } catch {}
+  } catch { }
   return out;
 }

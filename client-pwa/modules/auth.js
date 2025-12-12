@@ -48,7 +48,7 @@ function gc(id) { return !!g(id)?.checked; }
 // CONFIG NOTIF SERVER (toma de window.__RAMPET__ si existe)
 // ──────────────────────────────────────────────────────────────
 const NOTIF_BASE = (window.APP_CONFIG && window.APP_CONFIG.serverUrl)
-  || 'https://rampet-notification-server-three.vercel.app';
+  || window.APP_CONFIG?.apiUrl || 'https://rampet-notification-server-three.vercel.app';
 const API_KEY = (window.APP_CONFIG && window.APP_CONFIG.serverApiKey)
   || 'Felipe01';
 

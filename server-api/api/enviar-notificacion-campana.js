@@ -21,8 +21,8 @@ const db = getFirestore();
 const messaging = getMessaging();
 
 // ---------- Config opcional ----------
-const PWA_URL   = process.env.PWA_URL || "https://rampet.vercel.app";
-const ICON_URL  = process.env.PUSH_ICON_URL  || `${PWA_URL}/images/mi_logo.png`;
+const PWA_URL = process.env.PWA_URL || `https://${process.env.VERCEL_URL}`;
+const ICON_URL = process.env.PUSH_ICON_URL || `${PWA_URL}/images/mi_logo.png`;
 const BADGE_URL = process.env.PUSH_BADGE_URL || ICON_URL;
 
 // ---------- Handler principal (QStash firma requerida) ----------
@@ -115,7 +115,7 @@ async function procesarNotificacionIndividual({ campaignId, tipoNotificacion, de
     const emails = Array.from(new Set(clientes.map(c => c.email).filter(Boolean)));
     const jobs = emails.map(async (email) => {
       const cliente = clientes.find(c => c.email === email);
-      const nombre  = cliente?.nombre?.split(" ")[0] || "Cliente";
+      const nombre = cliente?.nombre?.split(" ")[0] || "Cliente";
       const html = `
         <div style="font-family:Arial, sans-serif; line-height:1.6; color:#333; max-width:600px; margin:auto; border:1px solid #ddd; padding:20px;">
           <img src="${ICON_URL}" alt="Logo" style="width:150px; display:block; margin:0 auto 20px 0;">

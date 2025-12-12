@@ -28,6 +28,7 @@ window.APP_CONFIG = {
     appName: "${clientConfig.appName}",
     companyName: "${clientConfig.companyName}",
     logoUrl: "${clientConfig.logoUrl}",
+    apiUrl: "${clientConfig.apiUrl || ''}",
     
     theme: ${JSON.stringify(clientConfig.theme, null, 4)},
     
@@ -74,6 +75,7 @@ const adminConfigContent = `// Configuración Global Admin - Generada automátic
 window.ADMIN_CONFIG = {
     platformName: "Admin - ${clientConfig.appName}",
     logoUrl: "${clientConfig.logoUrl}",
+    apiUrl: "${clientConfig.apiUrl || ''}",
     
     theme: ${JSON.stringify(clientConfig.theme, null, 4)},
 

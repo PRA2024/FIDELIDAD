@@ -42,7 +42,7 @@ export default async function handler(req, res) {
     'https://TU-DOMINIO-DEL-PANEL',     // <-- si corresponde
     'https://TU-OTRO-DOMINIO-SI-CORRESPONDE',
     // PWA
-    'https://rampet.vercel.app',
+    process.env.PWA_URL,
   ];
   const origin = req.headers.origin;
   if (origin && allowedOrigins.includes(origin)) {
@@ -81,7 +81,7 @@ export default async function handler(req, res) {
   // - Si NO lo envía, entonces:
   //     * Desde la PWA (rampet.vercel.app) => enviamos email (true).
   //     * Desde otros orígenes => no cambiar el comportamiento previo (false).
-  const isPwaOrigin = origin === 'https://rampet.vercel.app';
+  const isPwaOrigin = origin === process.env.PWA_URL;
   const shouldSendWelcome = (typeof sendWelcome === 'boolean') ? sendWelcome : isPwaOrigin;
 
   try {

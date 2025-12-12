@@ -29,7 +29,7 @@ function setCors(res, origin) {
 async function readJson(req) {
   if (req.body && typeof req.body === "object") return req.body;
   if (typeof req.body === "string") {
-    try { return JSON.parse(req.body); } catch {}
+    try { return JSON.parse(req.body); } catch { }
   }
   const chunks = [];
   for await (const chunk of req) chunks.push(chunk);
@@ -52,10 +52,10 @@ try {
   const app = admin.apps.length
     ? admin.app()
     : admin.initializeApp({
-        credential: credJson
-          ? admin.credential.cert(credJson)
-          : admin.credential.applicationDefault(),
-      });
+      credential: credJson
+        ? admin.credential.cert(credJson)
+        : admin.credential.applicationDefault(),
+    });
 
   db = admin.firestore(app);
 } catch (e) {
@@ -64,9 +64,9 @@ try {
 
 /* ───────────────────── Constantes ───────────────────── */
 const CLIENTS_COLLECTION = process.env.CLIENTS_COLLECTION || "clientes";
-const FCM_TOKENS_FIELD  = "fcmTokens";
-const API_SECRET_RAW    = process.env.API_SECRET_KEY || process.env.MI_API_SECRET || "";
-const API_SECRET        = API_SECRET_RAW.trim();
+const FCM_TOKENS_FIELD = "fcmTokens";
+const API_SECRET_RAW = process.env.API_SECRET_KEY || process.env.MI_API_SECRET || "";
+const API_SECRET = API_SECRET_RAW.trim();
 
 /* URL absoluta al sender */
 // URL absoluta al sender SIEMPRE en PRODUCCIÓN (evita previews protegidos por password)
@@ -77,16 +77,16 @@ function buildSendUrl() {
       const base = new URL(sched).origin; // p.ej. https://rampet-notification-server-three.vercel.app
       return `${base}/api/send-notification`;
     }
-  } catch {}
+  } catch { }
   // Fallback explícito al dominio prod
-  return "https://rampet-notification-server-three.vercel.app/api/send-notification";
+  return `https://${process.env.VERCEL_URL}/api/send-notification`;
 }
 
 
 /* Construye título/cuerpo desde templateData y, si existe, plantilla Firestore */
 async function buildMessage({ templateId, templateData }) {
   let title = templateData?.titulo || "RAMPET";
-  let body  = templateData?.descripcion || "";
+  let body = templateData?.descripcion || "";
 
   try {
     if (db && templateId) {
@@ -122,7 +122,7 @@ async function collectClienteIdsIfMissing() {
       const data = doc.data() || {};
       const tokens = Array.isArray(data[FCM_TOKENS_FIELD]) ? data[FCM_TOKENS_FIELD] : [];
       const hasTokens = tokens.length > 0;
-      const hasEmail  = isLikelyEmail(data.email);
+      const hasEmail = isLikelyEmail(data.email);
       if (hasTokens || hasEmail) ids.push(doc.id);
     });
   } catch (e) {
@@ -204,16 +204,16 @@ export default async function handler(req, res) {
 
     // 2) Resolver destinatarios con fallbacks
     let clienteIdsToUse = Array.isArray(clienteIds) ? clienteIds.filter(Boolean) : [];
-    let tokensToUse     = Array.isArray(tokens) ? tokens.filter(Boolean) : [];
-    let emailsToUse     = Array.isArray(emails) ? emails.filter(Boolean) : [];
+    let tokensToUse = Array.isArray(tokens) ? tokens.filter(Boolean) : [];
+    let emailsToUse = Array.isArray(emails) ? emails.filter(Boolean) : [];
 
     if (tokensToUse.length === 0 && clienteIdsToUse.length === 0) {
       clienteIdsToUse = await collectClienteIdsIfMissing();
     }
     if (tokensToUse.length === 0 && clienteIdsToUse.length === 0 && emailsToUse.length === 0) {
       const rec = await collectRecipientsDefault();
-      tokensToUse     = rec.tokens;
-      emailsToUse     = rec.emails;
+      tokensToUse = rec.tokens;
+      emailsToUse = rec.emails;
       clienteIdsToUse = rec.clienteIds;
     }
 

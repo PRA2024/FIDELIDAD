@@ -57,7 +57,7 @@ async function authCheck(req) {
 }
 
 function buildHtmlLayout(innerHtml) {
-  const base = process.env.PWA_URL || 'https://rampet.vercel.app';
+  const base = process.env.PWA_URL || `https://${process.env.VERCEL_URL}`;
   const logo = process.env.PUSH_ICON_URL || `${base}/images/mi_logo.png`;
   const terms = process.env.URL_TERMINOS_Y_CONDICIONES || '#';
   return `<!doctype html>
@@ -99,7 +99,7 @@ export default async function handler(req, res) {
     // 1) Plantilla unificada (con fallback legacy)
     const tpl = await resolveTemplate(db, templateId, 'email');
     const subject = applyBlocksAndVars(tpl.titulo, { ...templateData, email: to });
-    const htmlInner = applyBlocksAndVars(tpl.cuerpo,  { ...templateData, email: to });
+    const htmlInner = applyBlocksAndVars(tpl.cuerpo, { ...templateData, email: to });
     const html = buildHtmlLayout(htmlInner);
 
     const fromEmail = process.env.SENDGRID_FROM_EMAIL;
