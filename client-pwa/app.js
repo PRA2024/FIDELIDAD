@@ -856,6 +856,60 @@ async function main() {
     }
   });
 
+  // ────────────────────────────────────────────────────────────
+  // ONBOARDING (Post-Registro) LISTENERS
+  // ────────────────────────────────────────────────────────────
+  const closeOnboarding = () => {
+    try { localStorage.removeItem('justSignedUp'); } catch { }
+    try { localStorage.removeItem('addressProvidedAtSignup'); } catch { }
+    // Al cerrar onboarding, vamos a la app principal
+    // (renderMainScreen se encargará de mostrarla al detectar datos)
+    // Pero forzamos update para asegurar
+    UI.showScreen('main-app-screen');
+    // Forzamos un refresh de datos por si acaso
+    window.maybeRefreshIfStale?.();
+  };
+
+  document.getElementById('onboarding-enable-btn')?.addEventListener('click', async () => {
+    const btn = document.getElementById('onboarding-enable-btn');
+    if (btn) btn.disabled = true;
+    try {
+      // Usamos la logica existente en notifications.js (importada)
+      // Necesitamos handlePermissionRequest de notificaciones
+      // Como no esta expuesta directamente en UI, la invocamos via evento o hack
+      // Mejor: importamos handlePermissionRequest en app.js arriba si no esta
+      // O usamos el boton existente oculto? No, mejor llamar directo.
+
+      // La tenemos en imports de ui.js pero no app.js? 
+      // app.js importa initNotificationsOnce pero no request.
+      // Vamos a asumir que UI.handlePermissionRequest NO existe.
+      // Haremos un dispatch de click al switch de notificaciones invisible del perfil?
+      // O mejor: modificamos notifications.js para exponerla globalmente o importarla aqui.
+
+      // HACK ROBUSTO: Simulamos click en el boton de notis del perfil? No.
+      // Vamos a importar handlePermissionRequest desde notifications.js en app.js
+      // (Verificar imports arriba)
+
+      const { handlePermissionRequest, handlePermissionSwitch } = await import('./modules/notifications.js');
+      await handlePermissionRequest();
+
+      // Guardamos preferencia "true"
+      await Data.saveNotifConsent(true);
+
+      UI.showToast('¡Genial! Beneficios activados.', 'success');
+    } catch (e) {
+      console.warn('Error activando notificaciones onboarding:', e);
+      UI.showToast('No se pudieron activar las notificaciones.', 'warning');
+    } finally {
+      if (btn) btn.disabled = false;
+      closeOnboarding();
+    }
+  });
+
+  document.getElementById('onboarding-skip-btn')?.addEventListener('click', () => {
+    closeOnboarding();
+  });
+
 }
 
 // ──────────────────────────────────────────────────────────────

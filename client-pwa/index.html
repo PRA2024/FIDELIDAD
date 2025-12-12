@@ -230,6 +230,33 @@
       <p class="toggle-link">¿Ya tienes cuenta? <a href="#" id="show-login-link">Ingresa aquí</a></p>
     </div>
 
+    <!-- PANTALLA DE ONBOARDING (Post-Registro) -->
+    <div id="onboarding-screen" class="screen"
+      style="text-align:center; padding: 40px 24px; display: none; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; background: #fff;">
+      <div style="max-width: 400px; width: 100%;">
+        <div style="font-size: 48px; margin-bottom: 24px;">🎉</div>
+        <h2 style="margin-bottom: 16px; color: #333;">¡Te damos la bienvenida!</h2>
+        <p style="color: #666; margin-bottom: 32px; line-height: 1.5;">
+          Para que no te pierdas tus <strong>premios y descuentos exclusivos</strong>, activá las notificaciones ahora.
+        </p>
+
+        <div class="card"
+          style="background: #fdf8f0; border: 1px solid #f0e6d2; margin-bottom: 32px; padding: 16px; border-radius: 12px;">
+          <h4 style="margin: 0 0 8px; color: #d97706;">🎁 Beneficio Exclusivo</h4>
+          <p style="margin: 0; font-size: 0.9em; color: #92400e;">Te avisaremos cuando tengas puntos a punto de vencer o
+            canjes disponibles.</p>
+        </div>
+
+        <button id="onboarding-enable-btn" class="primary-btn"
+          style="width: 100%; margin-bottom: 12px; font-size: 16px; padding: 14px;">
+          🔔 Activar Beneficios
+        </button>
+        <button id="onboarding-skip-btn" class="secondary-btn" style="width: 100%; border: none; color: #999;">
+          Ahora no, ingresar igual
+        </button>
+      </div>
+    </div>
+
     <!-- APP -->
     <div id="main-app-screen" class="screen">
       <div class="user-header">
@@ -448,7 +475,8 @@
           <p>Cargando términos...</p>
         </div>
       </div>
-      <div class="modal-footer" style="margin-top: 15px; pt-3; border-top: 1px solid #eee; text-align: right;">
+      <div class="modal-footer"
+        style="margin-top: 15px; padding-top: 12px; border-top: 1px solid #eee; text-align: right;">
         <button id="accept-terms-btn-modal" class="primary-btn" style="display: none;">Aceptar</button>
       </div>
     </div>
