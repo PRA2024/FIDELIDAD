@@ -1,0 +1,24 @@
+// Configuración Global Admin - Generada automáticamente
+// Cliente: Club Demo
+
+window.ADMIN_CONFIG = {
+    platformName: "Admin - Club Demo",
+    logoUrl: "images/mi_logo.png",
+    apiUrl: "",
+    
+    theme: {
+    "primary": "#e11d48",
+    "secondary": "#1f2937",
+    "background": "#ffffff"
+},
+
+    // Configuración de Firebase compartida
+    firebaseConfig: {
+    "apiKey": "AIzaSyAvBw_Cc-t8lfip_FtQ1w_w3DrPDYpxINs",
+    "authDomain": "sistema-fidelizacion.firebaseapp.com",
+    "projectId": "sistema-fidelizacion",
+    "storageBucket": "sistema-fidelizacion.appspot.com",
+    "messagingSenderId": "357176214962",
+    "appId": "1:357176214962:web:6c1df9b74ff0f3779490ab"
+}
+};
