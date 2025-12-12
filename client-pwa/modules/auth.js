@@ -47,10 +47,12 @@ function gc(id) { return !!g(id)?.checked; }
 // ──────────────────────────────────────────────────────────────
 // CONFIG NOTIF SERVER (toma de window.__RAMPET__ si existe)
 // ──────────────────────────────────────────────────────────────
-const NOTIF_BASE = (window.APP_CONFIG && window.APP_CONFIG.serverUrl)
-  || window.APP_CONFIG?.apiUrl || 'https://rampet-notification-server-three.vercel.app';
-const API_KEY = (window.APP_CONFIG && window.APP_CONFIG.serverApiKey)
-  || 'Felipe01';
+const NOTIF_BASE = (window.APP_CONFIG && (window.APP_CONFIG.serverUrl || window.APP_CONFIG.apiUrl))
+  || (window.ADMIN_CONFIG && (window.ADMIN_CONFIG.serverUrl || window.ADMIN_CONFIG.apiUrl))
+  || ''; // Fallback vacío para obligar a configurar
+const API_KEY = (window.APP_CONFIG && (window.APP_CONFIG.serverApiKey || window.APP_CONFIG.apiKey))
+  || (window.ADMIN_CONFIG && (window.ADMIN_CONFIG.serverApiKey || window.ADMIN_CONFIG.apiKey))
+  || '';
 
 // ──────────────────────────────────────────────────────────────
 // LOGIN

@@ -13,7 +13,8 @@ let isCampanasInitialized = false;
 function getNotifConfig() {
   // Definí estas variables en index.html antes de cargar app.js:
   // <script>window.__RAMPET__={ NOTIF_BASE:'https://rampet-notification-server-three.vercel.app', API_KEY:'' };</script>
-  const base = window.ADMIN_CONFIG?.apiUrl || 'https://rampet-notification-server-three.vercel.app';
+  const config = window.ADMIN_CONFIG || window.APP_CONFIG || {};
+  const base = config.serverUrl || config.apiUrl || (window.__RAMPET__ && window.__RAMPET__.NOTIF_BASE) || '';
   const key = window.__RAMPET__?.API_KEY || ''; // si está vacío, igual intentamos por CORS allowlist
   return { base, key };
 }
