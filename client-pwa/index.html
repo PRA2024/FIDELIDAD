@@ -15,11 +15,21 @@
   <!-- Carga de Configuración (White Label) -->
   <script src="config.js"></script>
   <script>
-    // Aplicar configuración inicial (Título, Favicon) al cargar
+    // Aplicar configuración inicial (Título, Favicon, Logo, H1) al cargar
     document.addEventListener('DOMContentLoaded', () => {
       if (window.APP_CONFIG) {
+        // Título pestaña
         document.title = window.APP_CONFIG.appName || document.title;
-        // Actualizar favicon si es necesario (opcional)
+
+        // H1 header
+        const h1 = document.querySelector('header h1');
+        if (h1) h1.textContent = window.APP_CONFIG.appName;
+
+        // Logo header
+        const logo = document.querySelector('header img.logo');
+        if (logo && window.APP_CONFIG.logoUrl) {
+          logo.src = window.APP_CONFIG.logoUrl;
+        }
       }
     });
   </script>
