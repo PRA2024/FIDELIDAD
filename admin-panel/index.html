@@ -25,6 +25,14 @@
           logos.forEach(img => img.src = window.ADMIN_CONFIG.logoUrl);
         }
 
+        // Título del Dashboard (H1)
+        const platformTitle = document.getElementById('platform-title');
+        if (platformTitle && window.ADMIN_CONFIG.platformName) {
+          // Removemos "Admin - " si solo queremos el nombre del club, o usamos el nombre completo
+          // Usaremos el appName crudo si está disponible en config, o limpiaremos platformName
+          platformTitle.textContent = window.ADMIN_CONFIG.platformName.replace('Admin - ', 'Sistema de Fidelización ');
+        }
+
         // Colores (Opcional - TODO: implementar inyección CSS si se requiere)
       }
     });
@@ -88,7 +96,7 @@
     <div class="header-admin">
       <h1>
         <img src="images/mi_logo.png" alt="Logo de mi Empresa" id="logo-empresa">
-        Sistema de Fidelización RAMPET
+        <span id="platform-title">Cargando Sistema...</span>
       </h1>
       <button id="logout-btn" class="danger-btn">Cerrar Sesión</button>
     </div>
