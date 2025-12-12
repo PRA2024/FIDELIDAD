@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -7,7 +8,7 @@
 
   <meta name="theme-color" content="#007bff" />
   <link rel="manifest" href="manifest.json" />
-  <link rel="icon" href="/favicon.ico" sizes="any" />
+  <link rel="icon" href="./favicon.ico" sizes="any" />
   <link rel="apple-touch-icon" href="images/mi_logo_192.png" />
   <link rel="stylesheet" href="styles.css" />
 
@@ -16,19 +17,14 @@
   <script>
     // Aplicar configuración inicial (Título, Favicon) al cargar
     document.addEventListener('DOMContentLoaded', () => {
-        if(window.APP_CONFIG) {
-            document.title = window.APP_CONFIG.appName || document.title;
-            // Actualizar favicon si es necesario (opcional)
-        }
+      if (window.APP_CONFIG) {
+        document.title = window.APP_CONFIG.appName || document.title;
+        // Actualizar favicon si es necesario (opcional)
+      }
     });
   </script>
 
-  <script>
-    window.__RAMPET__ = {
-      VAPID_PUBLIC: 'BF-KoL99dP_eOzjYisObou-0jHHayo4QNKAcqRWDAPLYSspsNWvCSyY3H4gJd2hF3g8TRDchT0JrxM-4RGf7Lv4',
-      GEO_COOLDOWN_DAYS: 30 // <- podés cambiarlo (p.ej. 30, 45, etc.)
-    };
-  </script>
+
 
   <!-- Firebase compat -->
   <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
@@ -37,8 +33,9 @@
   <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-messaging-compat.js"></script>
 
-  <script type="module" src="/app.js"></script>
+  <script type="module" src="./app.js"></script>
 </head>
+
 <body>
   <!-- Modal perfil / editar datos -->
   <div id="profile-modal" class="modal-overlay" style="display:none;">
@@ -120,7 +117,9 @@
       <button id="install-entrypoint" class="secondary-btn" style="display:none;">Instalar app</button>
     </header>
 
-    <div id="loading-screen" class="screen active"><p>Cargando...</p></div>
+    <div id="loading-screen" class="screen active">
+      <p>Cargando...</p>
+    </div>
 
     <!-- LOGIN -->
     <div id="login-screen" class="screen">
@@ -129,7 +128,8 @@
 
       <form id="login-form" class="form-group" onsubmit="return false" autocomplete="on">
         <input type="email" id="login-email" placeholder="Tu Email" autocomplete="email" required>
-        <input type="password" id="login-password" placeholder="Tu Contraseña o DNI" autocomplete="current-password" required>
+        <input type="password" id="login-password" placeholder="Tu Contraseña o DNI" autocomplete="current-password"
+          required>
         <button id="login-btn" class="primary-btn" type="button">Ingresar</button>
       </form>
 
@@ -153,12 +153,14 @@
         <label for="register-fecha-nacimiento">Fecha de Nacimiento</label>
         <input type="date" id="register-fecha-nacimiento" required>
 
-        <input type="password" id="register-password" placeholder="Crea una Contraseña (mín. 6 caracteres)" autocomplete="new-password" required>
+        <input type="password" id="register-password" placeholder="Crea una Contraseña (mín. 6 caracteres)"
+          autocomplete="new-password" required>
 
         <!-- Zona opcional en el registro -->
         <fieldset style="margin-top:14px; padding:12px; border:1px solid #e5e5e5; border-radius:10px;">
           <legend style="padding:0 6px; font-weight:600;">Tu zona (opcional)</legend>
-          <p class="small-note" style="margin:0 0 10px; color:#666;">Si nos contás tu zona, podremos personalizarte beneficios cerca de tu barrio. Podés completarlo más tarde.</p>
+          <p class="small-note" style="margin:0 0 10px; color:#666;">Si nos contás tu zona, podremos personalizarte
+            beneficios cerca de tu barrio. Podés completarlo más tarde.</p>
 
           <div class="grid-2">
             <input id="reg-calle" placeholder="Calle">
@@ -174,12 +176,30 @@
 
             <select id="reg-provincia">
               <option value="">Provincia</option>
-              <option>Buenos Aires</option><option>CABA</option><option>Catamarca</option><option>Chaco</option>
-              <option>Chubut</option><option>Córdoba</option><option>Corrientes</option><option>Entre Ríos</option>
-              <option>Formosa</option><option>Jujuy</option><option>La Pampa</option><option>La Rioja</option>
-              <option>Mendoza</option><option>Misiones</option><option>Neuquén</option><option>Río Negro</option>
-              <option>Salta</option><option>San Juan</option><option>San Luis</option><option>Santa Cruz</option>
-              <option>Santa Fe</option><option>Santiago del Estero</option><option>Tierra del Fuego</option><option>Tucumán</option>
+              <option>Buenos Aires</option>
+              <option>CABA</option>
+              <option>Catamarca</option>
+              <option>Chaco</option>
+              <option>Chubut</option>
+              <option>Córdoba</option>
+              <option>Corrientes</option>
+              <option>Entre Ríos</option>
+              <option>Formosa</option>
+              <option>Jujuy</option>
+              <option>La Pampa</option>
+              <option>La Rioja</option>
+              <option>Mendoza</option>
+              <option>Misiones</option>
+              <option>Neuquén</option>
+              <option>Río Negro</option>
+              <option>Salta</option>
+              <option>San Juan</option>
+              <option>San Luis</option>
+              <option>Santa Cruz</option>
+              <option>Santa Fe</option>
+              <option>Santiago del Estero</option>
+              <option>Tierra del Fuego</option>
+              <option>Tucumán</option>
             </select>
 
             <input id="reg-cp" placeholder="Código Postal">
@@ -190,7 +210,8 @@
 
         <div class="terms-container" style="margin-top:12px;">
           <input type="checkbox" id="register-terms" required>
-          <label for="register-terms">He leído y acepto los <a href="#" id="show-terms-link">Términos y Condiciones</a>.</label>
+          <label for="register-terms">He leído y acepto los <a href="#" id="show-terms-link">Términos y
+              Condiciones</a>.</label>
         </div>
 
         <button id="register-btn" class="primary-btn" type="button">Crear Cuenta</button>
@@ -211,7 +232,8 @@
       </div>
 
       <div id="terms-banner" class="card terms-banner" style="display:none;">
-        <p>⚠️ Para poder canjear premios, debes aceptar los <a href="#" id="show-terms-link-banner">Términos y Condiciones</a>.</p>
+        <p>⚠️ Para poder canjear premios, debes aceptar los <a href="#" id="show-terms-link-banner">Términos y
+            Condiciones</a>.</p>
       </div>
 
       <!-- Banner chico solo si el usuario no cargó domicilio -->
@@ -246,12 +268,30 @@
           <!-- Provincia como select -->
           <select id="dom-provincia">
             <option value="">Provincia</option>
-            <option>Buenos Aires</option><option>CABA</option><option>Catamarca</option><option>Chaco</option>
-            <option>Chubut</option><option>Córdoba</option><option>Corrientes</option><option>Entre Ríos</option>
-            <option>Formosa</option><option>Jujuy</option><option>La Pampa</option><option>La Rioja</option>
-            <option>Mendoza</option><option>Misiones</option><option>Neuquén</option><option>Río Negro</option>
-            <option>Salta</option><option>San Juan</option><option>San Luis</option><option>Santa Cruz</option>
-            <option>Santa Fe</option><option>Santiago del Estero</option><option>Tierra del Fuego</option><option>Tucumán</option>
+            <option>Buenos Aires</option>
+            <option>CABA</option>
+            <option>Catamarca</option>
+            <option>Chaco</option>
+            <option>Chubut</option>
+            <option>Córdoba</option>
+            <option>Corrientes</option>
+            <option>Entre Ríos</option>
+            <option>Formosa</option>
+            <option>Jujuy</option>
+            <option>La Pampa</option>
+            <option>La Rioja</option>
+            <option>Mendoza</option>
+            <option>Misiones</option>
+            <option>Neuquén</option>
+            <option>Río Negro</option>
+            <option>Salta</option>
+            <option>San Juan</option>
+            <option>San Luis</option>
+            <option>Santa Cruz</option>
+            <option>Santa Fe</option>
+            <option>Santiago del Estero</option>
+            <option>Tierra del Fuego</option>
+            <option>Tucumán</option>
           </select>
 
           <input id="dom-cp" placeholder="Código Postal">
@@ -290,8 +330,8 @@
         <div id="cliente-saldo">$ 5.00</div>
         <p class="info-message">Se acumula con compras que no alcanzan a sumar un punto.</p>
       </div>
-<!-- Slot para avisos chicos de notificaciones -->
-<div id="notif-off-slot"></div>
+      <!-- Slot para avisos chicos de notificaciones -->
+      <div id="notif-off-slot"></div>
 
       <!-- Slot mini-prompt GEO (ahora libre, notifications.js no lo usa) -->
       <div id="geo-context-slot"></div>
@@ -304,13 +344,13 @@
       </div>
 
       <!-- 🔴 Aviso “notificaciones bloqueadas” — pequeño y DEBAJO del carrusel -->
-      <div id="notif-blocked-warning"
-           class="card warning-banner"
-           style="display:none; border:1px solid #f5c2c7; background:#f8d7da; color:#842029; margin:12px 0; padding:10px 12px; font-size:14px;">
+      <div id="notif-blocked-warning" class="card warning-banner"
+        style="display:none; border:1px solid #f5c2c7; background:#f8d7da; color:#842029; margin:12px 0; padding:10px 12px; font-size:14px;">
         <div class="card-body">
           <p style="margin:0;"><strong>Tenés las notificaciones bloqueadas en el navegador.</strong></p>
           <p style="margin:6px 0 0 0; font-size:14px;">
-            Para habilitarlas: clic en el <em>candado (🔒)</em> de la barra de direcciones → <em>Notificaciones</em> → <strong>Permitir</strong>, y recargá la página.
+            Para habilitarlas: clic en el <em>candado (🔒)</em> de la barra de direcciones → <em>Notificaciones</em> →
+            <strong>Permitir</strong>, y recargá la página.
           </p>
         </div>
       </div>
@@ -318,7 +358,8 @@
       <!-- Notificaciones / prompts -->
       <div id="notif-prompt-card" class="card" style="display:none;">
         <h3>🚀 ¡Activá tus beneficios exclusivos!</h3>
-        <p>Enterate al instante de promos y recompensas pensadas para vos. Activá las notificaciones y no te pierdas nada.</p>
+        <p>Enterate al instante de promos y recompensas pensadas para vos. Activá las notificaciones y no te pierdas
+          nada.</p>
         <ul style="text-align:left; padding-left:20px; margin:10px 0 15px;">
           <li>💰 <strong>Puntos al instante</strong></li>
           <li>🔥 <strong>Ofertas flash</strong></li>
@@ -386,14 +427,14 @@
     (function () {
       const u = new URL(location.href);
       const wantsInbox =
-        u.pathname.replace(/\/+$/,'') === '/notificaciones' ||
+        u.pathname.replace(/\/+$/, '') === '/notificaciones' ||
         u.searchParams.has('inbox');
       if (!wantsInbox) return;
 
       function tryOpen() {
         const btn = document.getElementById('btn-notifs');
         if (btn && getComputedStyle(btn).display !== 'none') {
-          try { btn.click(); } catch {}
+          try { btn.click(); } catch { }
           return;
         }
         setTimeout(tryOpen, 250);
@@ -409,7 +450,7 @@
   <script>
     // Mini-prompt contextual (actualmente no usado por notifications.js)
     function tryShowGeoPrompt() {
-      try { window.maybeShowGeoContextPrompt?.('geo-context-slot'); } catch {}
+      try { window.maybeShowGeoContextPrompt?.('geo-context-slot'); } catch { }
     }
     if (document.readyState === 'complete' || document.readyState === 'interactive') {
       setTimeout(tryShowGeoPrompt, 0);
@@ -422,5 +463,5 @@
     document.addEventListener('rampet:geo:changed', tryShowGeoPrompt);
   </script>
 </body>
-</html>
 
+</html>

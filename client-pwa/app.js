@@ -2,7 +2,7 @@
 
 import { setupFirebase, checkMessagingSupport, auth, db, firebase } from './modules/firebase.js';
 import * as UI from './modules/ui.js';
-try { window.UI = UI; } catch {}
+try { window.UI = UI; } catch { }
 import * as Data from './modules/data.js';
 import * as Auth from './modules/auth.js';
 
@@ -16,21 +16,21 @@ import {
 // === DEBUG / OBS ===
 window.__RAMPET_DEBUG = true;
 window.__BUILD_ID = 'pwa-2025-09-17-b';
-function d(tag, ...args){ if (window.__RAMPET_DEBUG) console.log(`[DBG][${window.__BUILD_ID}] ${tag}`, ...args); }
-window.__reportState = async (where='')=>{
-  const notifPerm = (window.Notification?.permission)||'n/a';
+function d(tag, ...args) { if (window.__RAMPET_DEBUG) console.log(`[DBG][${window.__BUILD_ID}] ${tag}`, ...args); }
+window.__reportState = async (where = '') => {
+  const notifPerm = (window.Notification?.permission) || 'n/a';
   let swReady = false;
-  try { swReady = !!(await navigator.serviceWorker?.getRegistration?.('/')); } catch {}
+  try { swReady = !!(await navigator.serviceWorker?.getRegistration?.('/')); } catch { }
   const fcm = localStorage.getItem('fcmToken') ? 'present' : 'missing';
   let geo = 'n/a';
-  try { if (navigator.permissions?.query) geo = (await navigator.permissions.query({name:'geolocation'})).state; } catch {}
+  try { if (navigator.permissions?.query) geo = (await navigator.permissions.query({ name: 'geolocation' })).state; } catch { }
   d(`STATE@${where}`, { notifPerm, swReady, fcm, geo });
 };
 
 // ──────────────────────────────────────────────────────────────
 // Badge campanita (se usa con mensajes del SW)
 // ──────────────────────────────────────────────────────────────
-function ensureBellBlinkStyle(){
+function ensureBellBlinkStyle() {
   if (document.getElementById('__bell_blink_css__')) return;
   const css = `
     @keyframes rampet-blink { 0%,100%{opacity:1} 50%{opacity:.3} }
@@ -41,12 +41,12 @@ function ensureBellBlinkStyle(){
   style.textContent = css;
   document.head.appendChild(style);
 }
-function getBadgeCount(){ const n = Number(localStorage.getItem('notifBadgeCount')||'0'); return Number.isFinite(n)? n : 0; }
-function setBadgeCount(n){
+function getBadgeCount() { const n = Number(localStorage.getItem('notifBadgeCount') || '0'); return Number.isFinite(n) ? n : 0; }
+function setBadgeCount(n) {
   ensureBellBlinkStyle();
-  try { localStorage.setItem('notifBadgeCount', String(Math.max(0, n|0))); } catch {}
+  try { localStorage.setItem('notifBadgeCount', String(Math.max(0, n | 0))); } catch { }
   const badge = document.getElementById('notif-counter');
-  const bell  = document.getElementById('btn-notifs');
+  const bell = document.getElementById('btn-notifs');
   if (!badge || !bell) return;
   if (n > 0) {
     badge.textContent = String(n);
@@ -57,11 +57,11 @@ function setBadgeCount(n){
     bell.classList.remove('blink');
   }
 }
-function bumpBadge(){ setBadgeCount(getBadgeCount() + 1); }
-function resetBadge(){ setBadgeCount(0); }
+function bumpBadge() { setBadgeCount(getBadgeCount() + 1); }
+function resetBadge() { setBadgeCount(0); }
 
 // Canal SW → APP: solo para contar/botón (no registramos otro onMessage)
-function wireSwMessageChannel(){
+function wireSwMessageChannel() {
   if (!('serviceWorker' in navigator)) return;
   if (window.__wiredSwMsg) return;
   window.__wiredSwMsg = true;
@@ -69,7 +69,7 @@ function wireSwMessageChannel(){
     const t = ev?.data?.type;
     if (t === 'PUSH_DELIVERED') bumpBadge();
     else if (t === 'OPEN_INBOX') {
-      try { await openInboxModal(); } catch {}
+      try { await openInboxModal(); } catch { }
     }
   });
 }
@@ -79,18 +79,18 @@ function wireSwMessageChannel(){
 // ──────────────────────────────────────────────────────────────
 let inboxFilter = 'all';
 let inboxLastSnapshot = [];
-let inboxPagination = { clienteRefPath:null };
+let inboxPagination = { clienteRefPath: null };
 let inboxUnsub = null;
 
-function normalizeCategory(v){
+function normalizeCategory(v) {
   if (!v) return '';
   const x = String(v).toLowerCase();
-  if (['punto','puntos','movimientos','historial'].includes(x)) return 'puntos';
-  if (['promo','promos','promoción','promocion','campaña','campanas','campaña','campañas'].includes(x)) return 'promos';
-  if (['otro','otros','general','aviso','avisos'].includes(x)) return 'otros';
+  if (['punto', 'puntos', 'movimientos', 'historial'].includes(x)) return 'puntos';
+  if (['promo', 'promos', 'promoción', 'promocion', 'campaña', 'campanas', 'campaña', 'campañas'].includes(x)) return 'promos';
+  if (['otro', 'otros', 'general', 'aviso', 'avisos'].includes(x)) return 'otros';
   return x;
 }
-function itemMatchesFilter(it){
+function itemMatchesFilter(it) {
   if (inboxFilter === 'all') return true;
   const cat = normalizeCategory(it.categoria || it.category);
   return cat === inboxFilter;
@@ -99,19 +99,19 @@ async function resolveClienteRef() {
   if (inboxPagination.clienteRefPath) return db.doc(inboxPagination.clienteRefPath);
   const u = auth.currentUser;
   if (!u) return null;
-  const qs = await db.collection('clientes').where('authUID','==', u.uid).limit(1).get();
+  const qs = await db.collection('clientes').where('authUID', '==', u.uid).limit(1).get();
   if (qs.empty) return null;
   inboxPagination.clienteRefPath = qs.docs[0].ref.path;
   return qs.docs[0].ref;
 }
-function renderInboxList(items){
+function renderInboxList(items) {
   const list = document.getElementById('inbox-list');
   const empty = document.getElementById('inbox-empty');
   if (!list || !empty) return;
   const data = items.filter(itemMatchesFilter);
   empty.style.display = data.length ? 'none' : 'block';
   if (!data.length) { list.innerHTML = ''; return; }
-  list.innerHTML = data.map(it=>{
+  list.innerHTML = data.map(it => {
     const sentAt = it.sentAt ? (it.sentAt.toDate ? it.sentAt.toDate() : new Date(it.sentAt)) : null;
     const dateTxt = sentAt ? sentAt.toLocaleString() : '';
     const destacado = !!it.destacado;
@@ -133,28 +133,28 @@ function renderInboxList(items){
     `;
   }).join('');
 
-  list.querySelectorAll('.inbox-item').forEach(card=>{
+  list.querySelectorAll('.inbox-item').forEach(card => {
     const id = card.getAttribute('data-id');
-    const toggle = async ()=>{
+    const toggle = async () => {
       try {
         const clienteRef = await resolveClienteRef();
         const cur = inboxLastSnapshot.find(x => x.id === id);
         const next = !(cur && cur.destacado === true);
         await clienteRef.collection('inbox').doc(id).set(
-          next ? { destacado:true, destacadoAt:new Date().toISOString() } : { destacado:false },
-          { merge:true }
+          next ? { destacado: true, destacadoAt: new Date().toISOString() } : { destacado: false },
+          { merge: true }
         );
         await fetchInboxBatchUnified();
       } catch (err) {
         console.warn('[INBOX] toggle destacado error:', err?.message || err);
       }
     };
-    card.addEventListener('click', async (e)=>{ if ((e.target instanceof HTMLElement) && e.target.closest('.inbox-actions')) return; await toggle(); });
-    card.addEventListener('keydown', async (e)=>{ if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); await toggle(); } });
+    card.addEventListener('click', async (e) => { if ((e.target instanceof HTMLElement) && e.target.closest('.inbox-actions')) return; await toggle(); });
+    card.addEventListener('keydown', async (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); await toggle(); } });
   });
 
-  list.querySelectorAll('.inbox-delete').forEach(btn=>{
-    btn.addEventListener('click', async (e)=>{
+  list.querySelectorAll('.inbox-delete').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
       e.stopPropagation();
       const card = btn.closest('.inbox-item');
       const id = card?.getAttribute('data-id');
@@ -173,8 +173,8 @@ async function fetchInboxBatchUnified() {
   const clienteRef = await resolveClienteRef();
   if (!clienteRef) { renderInboxList([]); return; }
   try {
-    const snap = await clienteRef.collection('inbox').orderBy('sentAt','desc').limit(50).get();
-    const items = snap.docs.map(d=>({ id:d.id, ...d.data() }));
+    const snap = await clienteRef.collection('inbox').orderBy('sentAt', 'desc').limit(50).get();
+    const items = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     inboxLastSnapshot = items;
     renderInboxList(items);
   } catch (e) {
@@ -185,37 +185,37 @@ async function fetchInboxBatchUnified() {
 }
 async function listenInboxRealtime() {
   const clienteRef = await resolveClienteRef();
-  if (!clienteRef) return () => {};
-  const q = clienteRef.collection('inbox').orderBy('sentAt','desc').limit(50);
-  return q.onSnapshot((snap)=>{
-    const items = snap.docs.map(d=>({ id:d.id, ...d.data() }));
+  if (!clienteRef) return () => { };
+  const q = clienteRef.collection('inbox').orderBy('sentAt', 'desc').limit(50);
+  return q.onSnapshot((snap) => {
+    const items = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     inboxLastSnapshot = items;
     renderInboxList(items);
-  }, (err)=> { console.warn('[INBOX] onSnapshot error:', err?.message || err); });
+  }, (err) => { console.warn('[INBOX] onSnapshot error:', err?.message || err); });
 }
-function wireInboxModal(){
+function wireInboxModal() {
   const modal = document.getElementById('inbox-modal');
   if (!modal || modal._wired) return;
   modal._wired = true;
 
-  const setActive =(idActive)=>{
-    ['inbox-tab-todos','inbox-tab-promos','inbox-tab-puntos','inbox-tab-otros'].forEach(id=>{
+  const setActive = (idActive) => {
+    ['inbox-tab-todos', 'inbox-tab-promos', 'inbox-tab-puntos', 'inbox-tab-otros'].forEach(id => {
       const btn = document.getElementById(id);
       if (!btn) return;
-      const isActive = id===idActive;
+      const isActive = id === idActive;
       btn.classList.toggle('primary-btn', isActive);
       btn.classList.toggle('secondary-btn', !isActive);
     });
   };
 
-  document.getElementById('inbox-tab-todos')?.addEventListener('click', async ()=>{ inboxFilter='all';   setActive('inbox-tab-todos');  renderInboxList(inboxLastSnapshot); });
-  document.getElementById('inbox-tab-promos')?.addEventListener('click',async ()=>{ inboxFilter='promos'; setActive('inbox-tab-promos'); renderInboxList(inboxLastSnapshot); });
-  document.getElementById('inbox-tab-puntos')?.addEventListener('click',async ()=>{ inboxFilter='puntos'; setActive('inbox-tab-puntos'); renderInboxList(inboxLastSnapshot); });
-  document.getElementById('inbox-tab-otros')?.addEventListener('click', async ()=>{ inboxFilter='otros';  setActive('inbox-tab-otros');  renderInboxList(inboxLastSnapshot); });
+  document.getElementById('inbox-tab-todos')?.addEventListener('click', async () => { inboxFilter = 'all'; setActive('inbox-tab-todos'); renderInboxList(inboxLastSnapshot); });
+  document.getElementById('inbox-tab-promos')?.addEventListener('click', async () => { inboxFilter = 'promos'; setActive('inbox-tab-promos'); renderInboxList(inboxLastSnapshot); });
+  document.getElementById('inbox-tab-puntos')?.addEventListener('click', async () => { inboxFilter = 'puntos'; setActive('inbox-tab-puntos'); renderInboxList(inboxLastSnapshot); });
+  document.getElementById('inbox-tab-otros')?.addEventListener('click', async () => { inboxFilter = 'otros'; setActive('inbox-tab-otros'); renderInboxList(inboxLastSnapshot); });
 
-  document.getElementById('close-inbox-modal')?.addEventListener('click', ()=> modal.style.display='none');
-  document.getElementById('inbox-close-btn')?.addEventListener('click', ()=> modal.style.display='none');
-  modal.addEventListener('click',(e)=>{ if(e.target===modal) modal.style.display='none'; });
+  document.getElementById('close-inbox-modal')?.addEventListener('click', () => modal.style.display = 'none');
+  document.getElementById('inbox-close-btn')?.addEventListener('click', () => modal.style.display = 'none');
+  modal.addEventListener('click', (e) => { if (e.target === modal) modal.style.display = 'none'; });
 }
 async function openInboxModal() {
   wireInboxModal();
@@ -243,22 +243,22 @@ function loadTermsContent() {
     <p><strong>6. Modificaciones del Programa:</strong> RAMPET se reserva el derecho de modificar los términos y condiciones, la tasa de conversión, el catálogo de premios o cualquier otro aspecto del programa de fidelización, inclusive su finalización, en cualquier momento y sin previo aviso.</p>
   `;
 }
-function openTermsModal(){ const m=termsModal(); if(!m) return; loadTermsContent(); m.style.display='flex'; }
-function closeTermsModal(){ const m=termsModal(); if(!m) return; m.style.display='none'; }
-function wireTermsModalBehavior(){
-  const m=termsModal(); if (!m || m._wired) return; m._wired=true;
+function openTermsModal() { const m = termsModal(); if (!m) return; loadTermsContent(); m.style.display = 'flex'; }
+function closeTermsModal() { const m = termsModal(); if (!m) return; m.style.display = 'none'; }
+function wireTermsModalBehavior() {
+  const m = termsModal(); if (!m || m._wired) return; m._wired = true;
   const closeBtn = document.getElementById('close-terms-modal');
   const acceptBtn = document.getElementById('accept-terms-btn-modal');
   if (closeBtn) closeBtn.addEventListener('click', closeTermsModal);
   if (acceptBtn) acceptBtn.addEventListener('click', closeTermsModal);
-  m.addEventListener('click',(e)=>{ if(e.target===m) closeTermsModal(); });
-  document.addEventListener('keydown',(e)=>{ if(e.key==='Escape' && m.style.display==='flex') closeTermsModal(); });
+  m.addEventListener('click', (e) => { if (e.target === m) closeTermsModal(); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && m.style.display === 'flex') closeTermsModal(); });
 }
 
 // ──────────────────────────────────────────────────────────────
 // PERFIL: reordenar tarjetas (Domicilio arriba / Preferencias último)
 // ──────────────────────────────────────────────────────────────
-function reorderProfileCards(){
+function reorderProfileCards() {
   const modal = document.getElementById('profile-modal');
   if (!modal) return;
   const domicilioCard = modal.querySelector('#prof-edit-address-btn')?.closest('.prefs-card');
@@ -287,8 +287,8 @@ window.addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault();
   deferredInstallPrompt = e;
   console.log('✅ beforeinstallprompt');
-   // ⬇️ NUEVO: si el usuario no lo descartó antes, mostramos el card
-  try { showInstallPromptIfAvailable(); } catch {}
+  // ⬇️ NUEVO: si el usuario no lo descartó antes, mostramos el card
+  try { showInstallPromptIfAvailable(); } catch { }
 });
 
 window.addEventListener('appinstalled', async () => {
@@ -296,9 +296,9 @@ window.addEventListener('appinstalled', async () => {
   localStorage.removeItem('installDismissed');
   deferredInstallPrompt = null;
 
-  document.getElementById('install-prompt-card')?.style?.setProperty('display','none');
-  document.getElementById('install-entrypoint')?.style?.setProperty('display','none');
-  document.getElementById('install-help-modal')?.style?.setProperty('display','none');
+  document.getElementById('install-prompt-card')?.style?.setProperty('display', 'none');
+  document.getElementById('install-entrypoint')?.style?.setProperty('display', 'none');
+  document.getElementById('install-help-modal')?.style?.setProperty('display', 'none');
   localStorage.setItem('pwaInstalled', 'true');
 
   const u = auth.currentUser;
@@ -379,24 +379,24 @@ function getInstallInstructions() {
 function setupAuthScreenListeners() {
   const on = (id, event, handler) => { const el = document.getElementById(id); if (el) el.addEventListener(event, handler); };
 
-  on('show-register-link', 'click', (e) => { 
-    e.preventDefault(); 
-    UI.showScreen('register-screen'); 
-    setTimeout(()=> { 
-      wireAddressDatalists('reg-'); 
-      reorderAddressFields('reg-'); 
-    }, 0); 
+  on('show-register-link', 'click', (e) => {
+    e.preventDefault();
+    UI.showScreen('register-screen');
+    setTimeout(() => {
+      wireAddressDatalists('reg-');
+      reorderAddressFields('reg-');
+    }, 0);
   });
   on('show-login-link', 'click', (e) => { e.preventDefault(); UI.showScreen('login-screen'); });
   on('login-btn', 'click', Auth.login);
 
-  on('register-btn','click', async () => {
+  on('register-btn', 'click', async () => {
     try {
       const r = await Auth.registerNewAccount();
-      try { localStorage.setItem('justSignedUp','1'); } catch {}
+      try { localStorage.setItem('justSignedUp', '1'); } catch { }
       return r;
     } catch (e) {
-      try { localStorage.removeItem('justSignedUp'); } catch {}
+      try { localStorage.removeItem('justSignedUp'); } catch { }
       throw e;
     }
   });
@@ -412,8 +412,8 @@ function setupAuthScreenListeners() {
 
 function setupMainAppScreenListeners() {
   const on = (id, event, handler) => { const el = document.getElementById(id); if (el) el.addEventListener(event, handler); };
-  if (window.__RAMPET__?.mainListenersWired) return;
-  (window.__RAMPET__ ||= {}).mainListenersWired = true;
+  if (window.__APP_RUNTIME__?.mainListenersWired) return;
+  (window.__APP_RUNTIME__ ||= {}).mainListenersWired = true;
 
   // Perfil
   on('edit-profile-btn', 'click', () => { reorderProfileCards(); UI.openProfileModal(); });
@@ -424,15 +424,15 @@ function setupMainAppScreenListeners() {
     if (banner) banner.style.display = 'none';
     if (card) {
       card.style.display = 'block';
-      try { window.scrollTo({ top: card.offsetTop - 12, behavior: 'smooth' }); } catch {}
+      try { window.scrollTo({ top: card.offsetTop - 12, behavior: 'smooth' }); } catch { }
     }
   });
 
   // Logout
   on('logout-btn', 'click', async () => {
-    try { await handleSignOutCleanup(); } catch {}
-    if (inboxUnsub) { try { inboxUnsub(); } catch {} inboxUnsub = null; }
-    try { window.cleanupUiObservers?.(); } catch {}
+    try { await handleSignOutCleanup(); } catch { }
+    if (inboxUnsub) { try { inboxUnsub(); } catch { } inboxUnsub = null; }
+    try { window.cleanupUiObservers?.(); } catch { }
     Auth.logout();
   });
 
@@ -445,7 +445,7 @@ function setupMainAppScreenListeners() {
     const saveBtn = document.getElementById('save-change-password');
     if (!saveBtn || saveBtn.disabled) return;
     const get = id => document.getElementById(id)?.value?.trim() || '';
-    const curr  = get('current-password');
+    const curr = get('current-password');
     const pass1 = get('new-password');
     const pass2 = get('confirm-new-password');
     if (!pass1 || pass1.length < 6) { UI.showToast('La nueva contraseña debe tener al menos 6 caracteres.', 'error'); return; }
@@ -457,7 +457,7 @@ function setupMainAppScreenListeners() {
     saveBtn.textContent = 'Guardando…';
     saveBtn.disabled = true;
     saveBtn.setAttribute('aria-busy', 'true');
-    ['current-password','new-password','confirm-new-password'].forEach(id => { const el = document.getElementById(id); if (el) el.disabled = true; });
+    ['current-password', 'new-password', 'confirm-new-password'].forEach(id => { const el = document.getElementById(id); if (el) el.disabled = true; });
 
     try {
       if (curr) {
@@ -483,91 +483,91 @@ function setupMainAppScreenListeners() {
       saveBtn.textContent = prevTxt;
       saveBtn.disabled = false;
       saveBtn.removeAttribute('aria-busy');
-      ['current-password','new-password','confirm-new-password'].forEach(id => { const el = document.getElementById(id); if (el) el.disabled = false; });
+      ['current-password', 'new-password', 'confirm-new-password'].forEach(id => { const el = document.getElementById(id); if (el) el.disabled = false; });
     }
   });
 
   // T&C
   on('show-terms-link-banner', 'click', (e) => { e.preventDefault(); openTermsModal(); });
   on('footer-terms-link', (e) => { e.preventDefault(); openTermsModal(); });
-  on('accept-terms-btn-modal', 'click',  Data.acceptTerms);
+  on('accept-terms-btn-modal', 'click', Data.acceptTerms);
 
   // Instalación
   on('btn-install-pwa', 'click', handleInstallPrompt);
   on('btn-dismiss-install', 'click', handleDismissInstall);
 
   // Notificaciones UI
-  on('btn-notifs', 'click', async () => { try { await openInboxModal(); } catch {} try { await handleBellClick(); } catch {} });
- 
+  on('btn-notifs', 'click', async () => { try { await openInboxModal(); } catch { } try { await handleBellClick(); } catch { } });
+
 }
 
 function openInboxIfQuery() {
   try {
     const url = new URL(location.href);
-    if (url.searchParams.get('inbox') === '1' || url.pathname.replace(/\/+$/,'') === '/notificaciones') {
+    if (url.searchParams.get('inbox') === '1' || url.pathname.replace(/\/+$/, '') === '/notificaciones') {
       openInboxModal();
     }
-  } catch {}
+  } catch { }
 }
 
 // ————————————————————————————————————————————————
 // Domicilio: BA/CABA inteligente + placeholders
 // ————————————————————————————————————————————————
 const BA_LOCALIDADES_BY_PARTIDO = {
-  "San Isidro": ["Béccar","Acassuso","Martínez","San Isidro","Villa Adelina","Boulogne Sur Mer","La Horqueta"],
-  "Vicente López": ["Olivos","Florida","Florida Oeste","La Lucila","Munro","Villa Martelli","Carapachay","Vicente López"],
-  "Tigre": ["Tigre","Don Torcuato","General Pacheco","El Talar","Benavídez","Rincón de Milberg","Dique Luján","Nordelta"],
-  "San Fernando": ["San Fernando","Victoria","Virreyes","Islas"],
-  "San Martín": ["San Martín","Villa Ballester","José León Suárez","Villa Lynch","Villa Maipú","Billinghurst","Chilavert","Loma Hermosa"],
-  "Tres de Febrero": ["Caseros","Ciudad Jardín","Santos Lugares","Villa Bosch","Loma Hermosa","Ciudadela","José Ingenieros","Saénz Peña"],
-  "Hurlingham": ["Hurlingham","William C. Morris","Villa Tesei"],
-  "Ituzaingó": ["Ituzaingó","Villa Udaondo"],
-  "Morón": ["Morón","Haedo","El Palomar","Castelar"],
-  "La Matanza": ["San Justo","Ramos Mejía","Lomas del Mirador","La Tablada","Isidro Casanova","González Catán","Ciudad Evita","Virrey del Pino"],
-  "Lanús": ["Lanús Oeste","Lanús Este","Remedios de Escalada","Monte Chingolo"],
-  "Lomas de Zamora": ["Lomas de Zamora","Banfield","Temperley","Turdera","Llavallol"],
-  "Avellaneda": ["Avellaneda","Dock Sud","Sarandí","Wilde","Gerli","Villa Domínico","Piñeyro"],
-  "Quilmes": ["Quilmes","Bernal","Don Bosco","Ezpeleta","Villa La Florida","San Francisco Solano"],
-  "Berazategui": ["Berazategui","Ranelagh","Sourigues","Hudson","Gutiérrez"],
-  "Florencio Varela": ["Florencio Varela","Bosques","Zeballos","Villa Vatteone"],
-  "Almirante Brown": ["Adrogué","Burzaco","Rafael Calzada","Longchamps","Glew","San José","Claypole","Malvinas Argentinas (AB)"],
-  "Pilar": ["Pilar","Del Viso","Manzanares","Presidente Derqui","Fátima","Villa Rosa","Champagnat"],
-  "Escobar": ["Belén de Escobar","Ingeniero Maschwitz","Garín","Maquinista Savio","Loma Verde"],
-  "José C. Paz": ["José C. Paz","Tortuguitas (comp.)","Sol y Verde"],
-  "Malvinas Argentinas": ["Los Polvorines","Grand Bourg","Tortuguitas","Ing. Pablo Nogués","Villa de Mayo"],
-  "San Miguel": ["San Miguel","Bella Vista","Muñiz"],
-  "Zárate": ["Zárate","Lima"],
+  "San Isidro": ["Béccar", "Acassuso", "Martínez", "San Isidro", "Villa Adelina", "Boulogne Sur Mer", "La Horqueta"],
+  "Vicente López": ["Olivos", "Florida", "Florida Oeste", "La Lucila", "Munro", "Villa Martelli", "Carapachay", "Vicente López"],
+  "Tigre": ["Tigre", "Don Torcuato", "General Pacheco", "El Talar", "Benavídez", "Rincón de Milberg", "Dique Luján", "Nordelta"],
+  "San Fernando": ["San Fernando", "Victoria", "Virreyes", "Islas"],
+  "San Martín": ["San Martín", "Villa Ballester", "José León Suárez", "Villa Lynch", "Villa Maipú", "Billinghurst", "Chilavert", "Loma Hermosa"],
+  "Tres de Febrero": ["Caseros", "Ciudad Jardín", "Santos Lugares", "Villa Bosch", "Loma Hermosa", "Ciudadela", "José Ingenieros", "Saénz Peña"],
+  "Hurlingham": ["Hurlingham", "William C. Morris", "Villa Tesei"],
+  "Ituzaingó": ["Ituzaingó", "Villa Udaondo"],
+  "Morón": ["Morón", "Haedo", "El Palomar", "Castelar"],
+  "La Matanza": ["San Justo", "Ramos Mejía", "Lomas del Mirador", "La Tablada", "Isidro Casanova", "González Catán", "Ciudad Evita", "Virrey del Pino"],
+  "Lanús": ["Lanús Oeste", "Lanús Este", "Remedios de Escalada", "Monte Chingolo"],
+  "Lomas de Zamora": ["Lomas de Zamora", "Banfield", "Temperley", "Turdera", "Llavallol"],
+  "Avellaneda": ["Avellaneda", "Dock Sud", "Sarandí", "Wilde", "Gerli", "Villa Domínico", "Piñeyro"],
+  "Quilmes": ["Quilmes", "Bernal", "Don Bosco", "Ezpeleta", "Villa La Florida", "San Francisco Solano"],
+  "Berazategui": ["Berazategui", "Ranelagh", "Sourigues", "Hudson", "Gutiérrez"],
+  "Florencio Varela": ["Florencio Varela", "Bosques", "Zeballos", "Villa Vatteone"],
+  "Almirante Brown": ["Adrogué", "Burzaco", "Rafael Calzada", "Longchamps", "Glew", "San José", "Claypole", "Malvinas Argentinas (AB)"],
+  "Pilar": ["Pilar", "Del Viso", "Manzanares", "Presidente Derqui", "Fátima", "Villa Rosa", "Champagnat"],
+  "Escobar": ["Belén de Escobar", "Ingeniero Maschwitz", "Garín", "Maquinista Savio", "Loma Verde"],
+  "José C. Paz": ["José C. Paz", "Tortuguitas (comp.)", "Sol y Verde"],
+  "Malvinas Argentinas": ["Los Polvorines", "Grand Bourg", "Tortuguitas", "Ing. Pablo Nogués", "Villa de Mayo"],
+  "San Miguel": ["San Miguel", "Bella Vista", "Muñiz"],
+  "Zárate": ["Zárate", "Lima"],
   "Campana": ["Campana"],
-  "Luján": ["Luján","Open Door","Torres","Cortínez"],
-  "Mercedes": ["Mercedes","Gowland","Altamira"],
-  "Bahía Blanca": ["Bahía Blanca","Ingeniero White","Cabildo","Cerri"],
-  "Gral. Pueyrredón": ["Mar del Plata","Batán","Sierra de los Padres"],
-  "Tandil": ["Tandil","Gardey","María Ignacia (Vela)"],
-  "Necochea": ["Necochea","Quequén"]
+  "Luján": ["Luján", "Open Door", "Torres", "Cortínez"],
+  "Mercedes": ["Mercedes", "Gowland", "Altamira"],
+  "Bahía Blanca": ["Bahía Blanca", "Ingeniero White", "Cabildo", "Cerri"],
+  "Gral. Pueyrredón": ["Mar del Plata", "Batán", "Sierra de los Padres"],
+  "Tandil": ["Tandil", "Gardey", "María Ignacia (Vela)"],
+  "Necochea": ["Necochea", "Quequén"]
 };
 const CABA_BARRIOS = [
-  "Palermo","Recoleta","Belgrano","Caballito","Almagro","San Telmo","Montserrat","Retiro","Puerto Madero","Flores",
-  "Floresta","Villa Urquiza","Villa Devoto","Villa del Parque","Chacarita","Colegiales","Núñez","Saavedra",
-  "Boedo","Parque Patricios","Barracas","La Boca","Mataderos","Liniers","Parque Chacabuco","Villa Crespo"
+  "Palermo", "Recoleta", "Belgrano", "Caballito", "Almagro", "San Telmo", "Montserrat", "Retiro", "Puerto Madero", "Flores",
+  "Floresta", "Villa Urquiza", "Villa Devoto", "Villa del Parque", "Chacarita", "Colegiales", "Núñez", "Saavedra",
+  "Boedo", "Parque Patricios", "Barracas", "La Boca", "Mataderos", "Liniers", "Parque Chacabuco", "Villa Crespo"
 ];
 const ZONAS_AR = {
   'Buenos Aires': { partidos: Object.keys(BA_LOCALIDADES_BY_PARTIDO).sort(), localidades: [] },
   'CABA': { partidos: [], localidades: CABA_BARRIOS },
   'Córdoba': {
-    partidos: ['Capital','Colón','Punilla','Santa María','Río Segundo','General San Martín','San Justo','Marcos Juárez','Tercero Arriba','Unión'],
-    localidades: ['Córdoba','Río Cuarto','Villa Carlos Paz','Alta Gracia','Villa María','San Francisco','Jesús María','Río Tercero','Villa Allende','La Calera','Mendiolaza','Unquillo']
+    partidos: ['Capital', 'Colón', 'Punilla', 'Santa María', 'Río Segundo', 'General San Martín', 'San Justo', 'Marcos Juárez', 'Tercero Arriba', 'Unión'],
+    localidades: ['Córdoba', 'Río Cuarto', 'Villa Carlos Paz', 'Alta Gracia', 'Villa María', 'San Francisco', 'Jesús María', 'Río Tercero', 'Villa Allende', 'La Calera', 'Mendiolaza', 'Unquillo']
   },
   'Santa Fe': {
-    partidos: ['Rosario','La Capital','Castellanos','General López','San Lorenzo','San Martín','San Jerónimo','San Justo'],
-    localidades: ['Rosario','Santa Fe','Rafaela','Venado Tuerto','Reconquista','Villa Gobernador Gálvez','Santo Tomé','Esperanza','San Lorenzo','Cañada de Gómez']
+    partidos: ['Rosario', 'La Capital', 'Castellanos', 'General López', 'San Lorenzo', 'San Martín', 'San Jerónimo', 'San Justo'],
+    localidades: ['Rosario', 'Santa Fe', 'Rafaela', 'Venado Tuerto', 'Reconquista', 'Villa Gobernador Gálvez', 'Santo Tomé', 'Esperanza', 'San Lorenzo', 'Cañada de Gómez']
   },
   'Mendoza': {
-    partidos: ['Capital','Godoy Cruz','Guaymallén','Las Heras','Luján de Cuyo','Maipú','San Martín','Rivadavia','San Rafael','General Alvear','Malargüe','Tunuyán','Tupungato','San Carlos'],
-    localidades: ['Mendoza','Godoy Cruz','Guaymallén','Las Heras','Luján de Cuyo','Maipú','San Rafael','General Alvear','Malargüe','Tunuyán','Tupungato','San Martín','Rivadavia']
+    partidos: ['Capital', 'Godoy Cruz', 'Guaymallén', 'Las Heras', 'Luján de Cuyo', 'Maipú', 'San Martín', 'Rivadavia', 'San Rafael', 'General Alvear', 'Malargüe', 'Tunuyán', 'Tupungato', 'San Carlos'],
+    localidades: ['Mendoza', 'Godoy Cruz', 'Guaymallén', 'Las Heras', 'Luján de Cuyo', 'Maipú', 'San Rafael', 'General Alvear', 'Malargüe', 'Tunuyán', 'Tupungato', 'San Martín', 'Rivadavia']
   },
   'Tucumán': {
-    partidos: ['Capital','Tafí Viejo','Yerba Buena','Lules','Cruz Alta','Tafí del Valle','Monteros','Chicligasta'],
-    localidades: ['San Miguel de Tucumán','Yerba Buena','Tafí Viejo','Banda del Río Salí','Lules','Monteros','Concepción','Tafí del Valle']
+    partidos: ['Capital', 'Tafí Viejo', 'Yerba Buena', 'Lules', 'Cruz Alta', 'Tafí del Valle', 'Monteros', 'Chicligasta'],
+    localidades: ['San Miguel de Tucumán', 'Yerba Buena', 'Tafí Viejo', 'Banda del Río Salí', 'Lules', 'Monteros', 'Concepción', 'Tafí del Valle']
   }
 };
 
@@ -575,7 +575,7 @@ function setOptionsList(el, values = []) {
   if (!el) return;
   el.innerHTML = values.map(v => `<option value="${v}">`).join('');
 }
-function reorderAddressFields(prefix = 'dom-'){
+function reorderAddressFields(prefix = 'dom-') {
   const grid = (prefix === 'dom-')
     ? document.querySelector('#address-card .grid-2')
     : document.querySelector('#register-form .grid-2') || document.querySelector('#register-screen .grid-2');
@@ -583,40 +583,40 @@ function reorderAddressFields(prefix = 'dom-'){
   const provincia = document.getElementById(`${prefix}provincia`);
   const depto = document.getElementById(`${prefix}depto`);
   const barrio = document.getElementById(`${prefix}barrio`);
-  const loc    = document.getElementById(`${prefix}localidad`);
-  const part   = document.getElementById(`${prefix}partido`);
+  const loc = document.getElementById(`${prefix}localidad`);
+  const part = document.getElementById(`${prefix}partido`);
   if (!provincia || !depto) return;
   const nextRef = barrio || loc || part || depto.nextSibling;
   if (nextRef && provincia !== nextRef.previousSibling) {
-    try { grid.insertBefore(provincia, nextRef); } catch {}
+    try { grid.insertBefore(provincia, nextRef); } catch { }
   }
 }
 function wireAddressDatalists(prefix = 'dom-') {
-  const provSel   = document.getElementById(`${prefix}provincia`);
-  const locInput  = document.getElementById(`${prefix}localidad`);
+  const provSel = document.getElementById(`${prefix}provincia`);
+  const locInput = document.getElementById(`${prefix}localidad`);
   const partInput = document.getElementById(`${prefix}partido`);
 
-  const locListId  = (prefix === 'dom-') ? 'localidad-list' : 'reg-localidad-list';
-  const partListId = (prefix === 'dom-') ? 'partido-list'   : 'reg-partido-list';
+  const locListId = (prefix === 'dom-') ? 'localidad-list' : 'reg-localidad-list';
+  const partListId = (prefix === 'dom-') ? 'partido-list' : 'reg-partido-list';
 
-  const locList  = document.getElementById(locListId);
+  const locList = document.getElementById(locListId);
   const partList = document.getElementById(partListId);
 
   if (!provSel) return;
 
   const setPlaceholders = (prov) => {
     if (/^CABA|Capital/i.test(prov)) {
-      if (locInput)  locInput.placeholder  = 'Barrio';
+      if (locInput) locInput.placeholder = 'Barrio';
       if (partInput) partInput.placeholder = '—';
       return;
     }
     if (/^Buenos Aires$/i.test(prov)) {
       if (partInput) partInput.placeholder = 'Partido';
-      if (locInput)  locInput.placeholder  = 'Localidad / Barrio';
+      if (locInput) locInput.placeholder = 'Localidad / Barrio';
       return;
     }
     if (partInput) partInput.placeholder = 'Departamento / Partido (opcional)';
-    if (locInput)  locInput.placeholder  = 'Localidad / Barrio';
+    if (locInput) locInput.placeholder = 'Localidad / Barrio';
   };
 
   const refreshLocalidades = () => {
@@ -671,7 +671,7 @@ function wireAddressDatalists(prefix = 'dom-') {
 // —— Address/banner wiring
 async function setupAddressSection() {
   const banner = document.getElementById('address-banner');
-  const card   = document.getElementById('address-card');
+  const card = document.getElementById('address-card');
 
   // Banner: solo abrir la card (el resto lo maneja notifications.js)
   if (banner && !banner.dataset.wired) {
@@ -679,7 +679,7 @@ async function setupAddressSection() {
     document.getElementById('address-open-btn')?.addEventListener('click', () => {
       if (card) card.style.display = 'block';
       banner.style.display = 'none';
-      try { window.scrollTo({ top: card.offsetTop - 20, behavior: 'smooth' }); } catch {}
+      try { window.scrollTo({ top: card.offsetTop - 20, behavior: 'smooth' }); } catch { }
     });
   }
 
@@ -693,7 +693,7 @@ async function setupAddressSection() {
   try {
     const mod = await import('./modules/notifications.js');
     await mod.initDomicilioForm?.();
-  } catch {}
+  } catch { }
 
   // Mostrar banner/card según estado actual (sin duplicar lógica de notifications.js)
   const justSignedUp = localStorage.getItem('justSignedUp') === '1';
@@ -701,10 +701,10 @@ async function setupAddressSection() {
   if (justSignedUp && !addrProvidedAtSignup) {
     if (card) card.style.display = 'block';
     if (banner) banner.style.display = 'none';
-    try { localStorage.removeItem('justSignedUp'); } catch {}
+    try { localStorage.removeItem('justSignedUp'); } catch { }
     return;
   }
-  try { localStorage.removeItem('addressProvidedAtSignup'); } catch {}
+  try { localStorage.removeItem('addressProvidedAtSignup'); } catch { }
 
   // Chequeo rápido si ya hay domicilio Y si en servidor se marcó "no mostrar más el banner"
   let hasAddress = false;
@@ -713,7 +713,7 @@ async function setupAddressSection() {
     const u = auth.currentUser;
     if (u) {
       const qs = await db.collection('clientes')
-        .where('authUID','==', u.uid)
+        .where('authUID', '==', u.uid)
         .limit(1)
         .get();
 
@@ -724,28 +724,28 @@ async function setupAddressSection() {
         // 👇 LOG 1: ver exactamente qué trae Firestore
         console.log('[ADDR DEBUG] data Firestore cliente:', data);
 
-       const comp = data.domicilio?.components;
-hasAddress = !!(
-  comp && (
-    comp.calle ||
-    comp.localidad ||
-    comp.partido ||
-    comp.provincia ||
-    comp.codigoPostal
-  )
-);
+        const comp = data.domicilio?.components;
+        hasAddress = !!(
+          comp && (
+            comp.calle ||
+            comp.localidad ||
+            comp.partido ||
+            comp.provincia ||
+            comp.codigoPostal
+          )
+        );
 
-// 🔹 mirar si en config ya se marcó "no mostrar más el banner"
-// soportar tanto forma anidada (data.config.addressPromptDismissed)
-// como forma aplanada (data["config.addressPromptDismissed"])
-const cfg = data.config || {};
-dismissedOnServer = !!(
-  cfg.addressPromptDismissed === true ||
-  data['config.addressPromptDismissed'] === true
-);
+        // 🔹 mirar si en config ya se marcó "no mostrar más el banner"
+        // soportar tanto forma anidada (data.config.addressPromptDismissed)
+        // como forma aplanada (data["config.addressPromptDismissed"])
+        const cfg = data.config || {};
+        dismissedOnServer = !!(
+          cfg.addressPromptDismissed === true ||
+          data['config.addressPromptDismissed'] === true
+        );
 
-// 👇 LOG 2: ver qué valores está usando para decidir
-console.log('[ADDR DEBUG] hasAddress, dismissedOnServer:', { hasAddress, dismissedOnServer });
+        // 👇 LOG 2: ver qué valores está usando para decidir
+        console.log('[ADDR DEBUG] hasAddress, dismissedOnServer:', { hasAddress, dismissedOnServer });
 
       }
     }
@@ -770,10 +770,10 @@ console.log('[ADDR DEBUG] hasAddress, dismissedOnServer:', { hasAddress, dismiss
   // Si NO tiene domicilio, NO dijo "No gracias" (ni local ni server) y NO difirió por sesión → mostramos banner
   if (!hasAddress && !dismissed && !deferredSession) {
     if (banner) banner.style.display = 'block';
-    if (card)   card.style.display = 'none';
+    if (card) card.style.display = 'none';
   } else {
     if (banner) banner.style.display = 'none';
-    if (card)   card.style.display = 'none';
+    if (card) card.style.display = 'none';
   }
 }
 
@@ -783,78 +783,78 @@ async function main() {
   setupFirebase();
   const messagingSupported = await checkMessagingSupport();
 
- auth.onAuthStateChanged(async (user) => {
-  const bell = document.getElementById('btn-notifs');
-  const badge = document.getElementById('notif-counter');
+  auth.onAuthStateChanged(async (user) => {
+    const bell = document.getElementById('btn-notifs');
+    const badge = document.getElementById('notif-counter');
 
-  // Terms + Inbox wiring
-  wireTermsModalBehavior();
-  wireInboxModal();
+    // Terms + Inbox wiring
+    wireTermsModalBehavior();
+    wireInboxModal();
 
-  if (user) {
-    if (bell) bell.style.display = 'inline-block';
-    setupMainAppScreenListeners();
+    if (user) {
+      if (bell) bell.style.display = 'inline-block';
+      setupMainAppScreenListeners();
 
-    // 🔹 Registrar SW + token si ya hay permiso (solo una vez, desde notifications.js)
-    try { await initNotificationsOnce(); } catch (e) { console.warn('[PWA] initNotificationsOnce error:', e); }
+      // 🔹 Registrar SW + token si ya hay permiso (solo una vez, desde notifications.js)
+      try { await initNotificationsOnce(); } catch (e) { console.warn('[PWA] initNotificationsOnce error:', e); }
 
-    // ⚡ escuchar mensajes del SW para badge (sin duplicar onMessage)
-    wireSwMessageChannel();
+      // ⚡ escuchar mensajes del SW para badge (sin duplicar onMessage)
+      wireSwMessageChannel();
 
-    Data.listenToClientData(user);
-    document.addEventListener('rampet:cliente-updated', (e) => {
-      try { window.clienteData = e.detail?.cliente || window.clienteData || {}; } catch {}
-    });
+      Data.listenToClientData(user);
+      document.addEventListener('rampet:cliente-updated', (e) => {
+        try { window.clienteData = e.detail?.cliente || window.clienteData || {}; } catch { }
+      });
 
-    try { await window.ensureGeoOnStartup?.(); } catch {}
-    document.addEventListener('visibilitychange', async () => {
-      if (document.visibilityState === 'visible') { try { await window.maybeRefreshIfStale?.(); } catch {} }
-    });
+      try { await window.ensureGeoOnStartup?.(); } catch { }
+      document.addEventListener('visibilitychange', async () => {
+        if (document.visibilityState === 'visible') { try { await window.maybeRefreshIfStale?.(); } catch { } }
+      });
 
-    try { window.setupMainLimitsObservers?.(); } catch {}
+      try { window.setupMainLimitsObservers?.(); } catch { }
 
-    if (messagingSupported) {
-      console.log('[FCM] token actual:', localStorage.getItem('fcmToken') || '(sin token)');
-      window.__reportState?.('post-init-notifs');
+      if (messagingSupported) {
+        console.log('[FCM] token actual:', localStorage.getItem('fcmToken') || '(sin token)');
+        window.__reportState?.('post-init-notifs');
+      }
+
+      setBadgeCount(getBadgeCount());
+      const installBtn = document.getElementById('install-entrypoint');
+      if (installBtn) {
+        const isStandalone = (window.matchMedia?.('(display-mode: standalone)').matches || window.navigator.standalone);
+        installBtn.style.display = isStandalone ? 'none' : 'inline-block';
+      }
+
+      await setupAddressSection();
+      openInboxIfQuery();
+
+      try {
+        if (inboxUnsub) { try { inboxUnsub(); } catch { } }
+        inboxUnsub = await listenInboxRealtime();
+      } catch (e) { console.warn('[INBOX] realtime no iniciado:', e?.message || e); }
+
+    } else {
+      // 🔹 Nuevo: al desloguearse, reseteamos el "Luego" del banner de domicilio
+      try {
+        sessionStorage.removeItem('addressBannerDeferred');
+      } catch (e) {
+        console.warn('[PWA] no se pudo limpiar addressBannerDeferred:', e);
+      }
+
+      if (bell) bell.style.display = 'none';
+      if (badge) badge.style.display = 'none';
+      setupAuthScreenListeners();
+      UI.showScreen('login-screen');
+
+      if (inboxUnsub) { try { inboxUnsub(); } catch { } inboxUnsub = null; }
+      inboxPagination.clienteRefPath = null;
+      inboxLastSnapshot = [];
+      resetBadge();
+
+      wireAddressDatalists('reg-');
+      reorderAddressFields('reg-');
     }
-
-    setBadgeCount(getBadgeCount());
-    const installBtn = document.getElementById('install-entrypoint');
-    if (installBtn) {
-      const isStandalone = (window.matchMedia?.('(display-mode: standalone)').matches || window.navigator.standalone);
-      installBtn.style.display = isStandalone ? 'none' : 'inline-block';
-    }
-
-    await setupAddressSection();
-    openInboxIfQuery();
-
-    try {
-      if (inboxUnsub) { try { inboxUnsub(); } catch {} }
-      inboxUnsub = await listenInboxRealtime();
-    } catch (e) { console.warn('[INBOX] realtime no iniciado:', e?.message || e); }
-
-  } else {
-    // 🔹 Nuevo: al desloguearse, reseteamos el "Luego" del banner de domicilio
-    try {
-      sessionStorage.removeItem('addressBannerDeferred');
-    } catch (e) {
-      console.warn('[PWA] no se pudo limpiar addressBannerDeferred:', e);
-    }
-
-    if (bell) bell.style.display = 'none';
-    if (badge) badge.style.display = 'none';
-    setupAuthScreenListeners();
-    UI.showScreen('login-screen');
-
-    if (inboxUnsub) { try { inboxUnsub(); } catch {} inboxUnsub = null; }
-    inboxPagination.clienteRefPath = null;
-    inboxLastSnapshot = [];
-    resetBadge();
-
-    wireAddressDatalists('reg-');
-    reorderAddressFields('reg-');
-  }
-});
+  });
 
 }
 
@@ -887,8 +887,8 @@ function ensureTermsModalPresent() {
   modal.addEventListener('click', (ev) => { if (ev.target === modal) modal.style.display = 'none'; });
   document.getElementById('close-terms-modal')?.addEventListener('click', () => { modal.style.display = 'none'; });
 
-  try { loadTermsContent?.(); } catch {}
-  try { wireTermsModalBehavior?.(); } catch {}
+  try { loadTermsContent?.(); } catch { }
+  try { wireTermsModalBehavior?.(); } catch { }
 
   return modal;
 }
@@ -898,7 +898,7 @@ function openTermsModalCatchAll() {
   catch {
     try { UI.openTermsModal?.(true); } catch { modal.style.display = 'flex'; }
   }
-  try { wireTermsModalBehavior?.(); } catch {}
+  try { wireTermsModalBehavior?.(); } catch { }
 }
 
 document.addEventListener('click', (e) => {
@@ -915,9 +915,9 @@ document.addEventListener('click', (e) => {
 
 // arranque de la app
 document.addEventListener('DOMContentLoaded', () => {
-  try { reorderProfileCards(); } catch {}
-  try { reorderAddressFields('dom-'); } catch {}
-  try { reorderAddressFields('reg-'); } catch {}
+  try { reorderProfileCards(); } catch { }
+  try { reorderAddressFields('dom-'); } catch { }
+  try { reorderAddressFields('reg-'); } catch { }
   main();
 });
 

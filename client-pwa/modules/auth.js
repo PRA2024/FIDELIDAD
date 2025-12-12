@@ -11,7 +11,7 @@ let __signupLock = false;
 
 async function hardResetFirebaseCaches() {
   // Cierra sesión si hubiera alguien logueado
-  try { if (auth.currentUser) await auth.signOut(); } catch {}
+  try { if (auth.currentUser) await auth.signOut(); } catch { }
 
   // Borra IndexedDBs comunes de Firebase (si no existen, ignora el error)
   const toDelete = [
@@ -31,8 +31,8 @@ async function hardResetFirebaseCaches() {
   );
 
   // Limpia flags locales de la PWA si los usás
-  try { localStorage.removeItem('justSignedUp'); } catch {}
-  try { localStorage.removeItem('addressProvidedAtSignup'); } catch {}
+  try { localStorage.removeItem('justSignedUp'); } catch { }
+  try { localStorage.removeItem('addressProvidedAtSignup'); } catch { }
 }
 
 async function ensureCleanAuthSession() {
@@ -40,16 +40,16 @@ async function ensureCleanAuthSession() {
   await hardResetFirebaseCaches();
 }
 
-function g(id){ return document.getElementById(id); }
-function gv(id){ return g(id)?.value?.trim() || ''; }
-function gc(id){ return !!g(id)?.checked; }
+function g(id) { return document.getElementById(id); }
+function gv(id) { return g(id)?.value?.trim() || ''; }
+function gc(id) { return !!g(id)?.checked; }
 
 // ──────────────────────────────────────────────────────────────
 // CONFIG NOTIF SERVER (toma de window.__RAMPET__ si existe)
 // ──────────────────────────────────────────────────────────────
-const NOTIF_BASE = (window.__RAMPET__ && window.__RAMPET__.NOTIF_BASE)
+const NOTIF_BASE = (window.APP_CONFIG && window.APP_CONFIG.serverUrl)
   || 'https://rampet-notification-server-three.vercel.app';
-const API_KEY = (window.__RAMPET__ && window.__RAMPET__.API_KEY)
+const API_KEY = (window.APP_CONFIG && window.APP_CONFIG.serverApiKey)
   || 'Felipe01';
 
 // ──────────────────────────────────────────────────────────────
@@ -66,7 +66,7 @@ export async function login() {
     await auth.signInWithEmailAndPassword(email, password);
     // onAuthStateChanged en app.js continúa el flujo
   } catch (error) {
-    if (['auth/user-not-found','auth/wrong-password','auth/invalid-credential'].includes(error.code)) {
+    if (['auth/user-not-found', 'auth/wrong-password', 'auth/invalid-credential'].includes(error.code)) {
       UI.showToast("Email o contraseña incorrectos.", "error");
     } else {
       UI.showToast("Error al iniciar sesión.", "error");
@@ -97,16 +97,16 @@ export async function sendPasswordResetFromLogin() {
 function collectSignupAddress() {
   const get = (id) => document.getElementById(id)?.value?.trim() || '';
 
-  const calle       = get('reg-calle');
-  const numero      = get('reg-numero');
-  const piso        = get('reg-piso');
-  const depto       = get('reg-depto');
-  const provincia   = get('reg-provincia');
-  const partido     = get('reg-partido');   // para BA
-  const localidad   = get('reg-localidad'); // barrio/localidad
-  const codigoPostal= get('reg-cp');
-  const pais        = get('reg-pais') || 'Argentina';
-  const referencia  = get('reg-referencia');
+  const calle = get('reg-calle');
+  const numero = get('reg-numero');
+  const piso = get('reg-piso');
+  const depto = get('reg-depto');
+  const provincia = get('reg-provincia');
+  const partido = get('reg-partido');   // para BA
+  const localidad = get('reg-localidad'); // barrio/localidad
+  const codigoPostal = get('reg-cp');
+  const pais = get('reg-pais') || 'Argentina';
+  const referencia = get('reg-referencia');
 
   const seg1 = [calle, numero].filter(Boolean).join(' ');
   const seg2 = [piso, depto].filter(Boolean).join(' ');
@@ -125,8 +125,8 @@ function collectSignupAddress() {
     components: {
       calle, numero, piso, depto,
       provincia,
-      partido:   provincia === 'Buenos Aires' ? partido : '',
-      barrio:    provincia === 'CABA' ? localidad : '',
+      partido: provincia === 'Buenos Aires' ? partido : '',
+      barrio: provincia === 'CABA' ? localidad : '',
       localidad: provincia === 'CABA' ? '' : localidad,
       codigoPostal,
       pais,
@@ -143,13 +143,13 @@ export async function registerNewAccount() {
   // ⬇️ Anti-doble envío
   if (__signupLock) return UI.showToast("Estamos creando tu cuenta…", "info");
   __signupLock = true;
-  const nombre          = gv('register-nombre');
-  const dni             = gv('register-dni');
-  const email           = (gv('register-email') || '').toLowerCase();
-  const telefono        = gv('register-telefono');
+  const nombre = gv('register-nombre');
+  const dni = gv('register-dni');
+  const email = (gv('register-email') || '').toLowerCase();
+  const telefono = gv('register-telefono');
   const fechaNacimiento = gv('register-fecha-nacimiento');
-  const password        = gv('register-password');
-  const termsAccepted   = gc('register-terms');
+  const password = gv('register-password');
+  const termsAccepted = gc('register-terms');
 
   // Validaciones
   if (!nombre || !dni || !email || !password || !fechaNacimiento) {
@@ -178,17 +178,17 @@ export async function registerNewAccount() {
 
   // (Opcional) consentimientos si existen
   const regOptinNotifs = !!gc('register-optin-notifs');
-  const regOptinGeo    = !!gc('register-optin-geo');
+  const regOptinGeo = !!gc('register-optin-geo');
 
   const btn = g('register-btn');
   btn.disabled = true; btn.textContent = 'Creando...';
 
   try {
     // 1) crear usuario
-     // ⬇️ Sesión/cachés limpias ANTES del alta
+    // ⬇️ Sesión/cachés limpias ANTES del alta
     await ensureCleanAuthSession();
     const cred = await auth.createUserWithEmailAndPassword(email, password);
-    const uid  = cred.user.uid;
+    const uid = cred.user.uid;
 
     // 2) documento base
     const baseDoc = {
@@ -204,9 +204,9 @@ export async function registerNewAccount() {
       passwordPersonalizada: true,
       config: {
         notifEnabled: regOptinNotifs,
-        geoEnabled:   regOptinGeo,
+        geoEnabled: regOptinGeo,
         notifUpdatedAt: new Date().toISOString(),
-        geoUpdatedAt:   new Date().toISOString()
+        geoUpdatedAt: new Date().toISOString()
       },
       ...(hasAny ? { domicilio: dom } : {}),
       // Origen para el Panel
@@ -229,14 +229,14 @@ export async function registerNewAccount() {
 
     // 4) pedir N° de socio al server (mismo backend del panel)
     try {
-     const r = await fetch(`${NOTIF_BASE}/api/assign-socio-number`, {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json',
-    'x-api-key': API_KEY
-  },
-  body: JSON.stringify({ docId: uid }) // ← sin sendWelcome
-});
+      const r = await fetch(`${NOTIF_BASE}/api/assign-socio-number`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': API_KEY
+        },
+        body: JSON.stringify({ docId: uid }) // ← sin sendWelcome
+      });
       const j = await r.json().catch(() => ({}));
       console.log('[assign-socio-number][PWA]', r.status, j);
 
@@ -261,18 +261,18 @@ export async function registerNewAccount() {
           const snap = await db.collection('clientes').doc(theUid).get();
           const n = snap?.data()?.numeroSocio ?? null;
           if (Number.isInteger(n)) return n;
-        } catch {}
+        } catch { }
         await new Promise(r => setTimeout(r, delayMs));
       }
       return null;
     }
     try {
       await waitSocioNumberOnce(uid);
-    } catch {}
+    } catch { }
 
     // 5) UX flags locales
-    try { localStorage.setItem('justSignedUp', '1'); } catch {}
-    try { localStorage.setItem('addressProvidedAtSignup', hasAny ? '1' : '0'); } catch {}
+    try { localStorage.setItem('justSignedUp', '1'); } catch { }
+    try { localStorage.setItem('addressProvidedAtSignup', hasAny ? '1' : '0'); } catch { }
 
     UI.showToast("¡Registro exitoso! Bienvenido/a al Club.", "success");
   } catch (error) {
@@ -284,7 +284,7 @@ export async function registerNewAccount() {
     }
   } finally {
     btn.disabled = false; btn.textContent = 'Crear Cuenta';
-     __signupLock = false;   // ⬅️ importante soltar el mutex SIEMPRE
+    __signupLock = false;   // ⬅️ importante soltar el mutex SIEMPRE
   }
 }
 
@@ -292,13 +292,13 @@ export async function registerNewAccount() {
 // CAMBIAR CONTRASEÑA
 // ──────────────────────────────────────────────────────────────
 export async function changePassword() {
-  const curr  = gv('current-password');
+  const curr = gv('current-password');
   const pass1 = gv('new-password');
   const pass2 = gv('confirm-new-password');
 
   if (!pass1 || !pass2) return UI.showToast("Debes completar todos los campos.", "error");
-  if (pass1.length < 6)  return UI.showToast("La nueva contraseña debe tener al menos 6 caracteres.", "error");
-  if (pass1 !== pass2)   return UI.showToast("Las nuevas contraseñas no coinciden.", "error");
+  if (pass1.length < 6) return UI.showToast("La nueva contraseña debe tener al menos 6 caracteres.", "error");
+  if (pass1 !== pass2) return UI.showToast("Las nuevas contraseñas no coinciden.", "error");
 
   const boton = document.getElementById('save-new-password-btn') || document.getElementById('save-change-password');
   if (!boton) return;
@@ -310,12 +310,12 @@ export async function changePassword() {
 
     if (curr) {
       const credential = firebase.auth.EmailAuthProvider.credential(user.email, curr);
-      try { await user.reauthenticateWithCredential(credential); } catch {}
+      try { await user.reauthenticateWithCredential(credential); } catch { }
     }
 
     await user.updatePassword(pass1);
     UI.showToast("¡Contraseña actualizada con éxito!", "success");
-    try { UI.closeChangePasswordModal?.(); } catch {}
+    try { UI.closeChangePasswordModal?.(); } catch { }
   } catch (error) {
     if (error?.code === 'auth/requires-recent-login') {
       try {

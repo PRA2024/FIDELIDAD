@@ -19,11 +19,13 @@
       if (window.ADMIN_CONFIG) {
         document.title = window.ADMIN_CONFIG.platformName || document.title;
 
-        // Actualizar logos si existen en el DOM
-        const logos = document.querySelectorAll('img[src*="mi_logo.png"], .login-logo, #logo-empresa');
-        logos.forEach(img => {
-          if (window.ADMIN_CONFIG.logoUrl) img.src = window.ADMIN_CONFIG.logoUrl;
-        });
+        // Actualizar logos
+        if (window.ADMIN_CONFIG.logoUrl) {
+          const logos = document.querySelectorAll('img[src*="mi_logo.png"], .login-logo, #logo-empresa');
+          logos.forEach(img => img.src = window.ADMIN_CONFIG.logoUrl);
+        }
+
+        // Colores (Opcional - TODO: implementar inyección CSS si se requiere)
       }
     });
   </script>

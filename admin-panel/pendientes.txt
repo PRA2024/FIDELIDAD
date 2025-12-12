@@ -1,4 +1,0 @@
-1)ver tema de mi_api_key, api_secret_key , etc y configurar para que todas miren la misma
-2) verificar que no halla claves en los programas , si mal no  recuerdo en alguno esta Felipe01
-3) en app de pwa esta terminos y condiciones, hacer que lo llame del documento que esta en el github
-4) ver si se puede unifica el panel y pwa de donde lee las localidades y barrios
