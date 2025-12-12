@@ -190,6 +190,10 @@ export async function registerNewAccount() {
     const cred = await auth.createUserWithEmailAndPassword(email, password);
     const uid = cred.user.uid;
 
+    // ⚡ FIX RACE CONDITION: Marcar flag INMEDIATAMENTE para que onAuthStateChanged lo vea
+    try { localStorage.setItem('justSignedUp', '1'); } catch { }
+    try { localStorage.setItem('addressProvidedAtSignup', hasAny ? '1' : '0'); } catch { }
+
     // 2) documento base
     const baseDoc = {
       authUID: uid,
@@ -270,9 +274,7 @@ export async function registerNewAccount() {
       await waitSocioNumberOnce(uid);
     } catch { }
 
-    // 5) UX flags locales
-    try { localStorage.setItem('justSignedUp', '1'); } catch { }
-    try { localStorage.setItem('addressProvidedAtSignup', hasAny ? '1' : '0'); } catch { }
+    // 5) UX flags locales (Marcados al inicio para evitar Race Condition) - mantenemos el evento de disparo aquí
 
     // 🔥 EVENTO: Registro exitoso -> Disparar flujos de marketing (Prompt Notificaciones)
     document.dispatchEvent(new CustomEvent('rampet:auth:sign-up-success'));
