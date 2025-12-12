@@ -1,0 +1,4 @@
+Prueba de conexión desde Antigravity Agent.
+Fecha: 2025-12-12
+Hora: 15:58
+Si ves este archivo, la conexión es exitosa.
