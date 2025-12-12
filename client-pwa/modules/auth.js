@@ -274,6 +274,9 @@ export async function registerNewAccount() {
     try { localStorage.setItem('justSignedUp', '1'); } catch { }
     try { localStorage.setItem('addressProvidedAtSignup', hasAny ? '1' : '0'); } catch { }
 
+    // 🔥 EVENTO: Registro exitoso -> Disparar flujos de marketing (Prompt Notificaciones)
+    document.dispatchEvent(new CustomEvent('rampet:auth:sign-up-success'));
+
     UI.showToast("¡Registro exitoso! Bienvenido/a al Club.", "success");
   } catch (error) {
     console.error('registerNewAccount error:', error?.code || error);

@@ -113,6 +113,28 @@ function bootstrapFirstSessionUX() {
   } catch (e) { }
 }
 
+// ────────────────────────────────────────────────────────────
+// LISTENER: Post-Registro inmediato
+// ────────────────────────────────────────────────────────────
+document.addEventListener('rampet:auth:sign-up-success', () => {
+  // Forzar visualización del Prompt de Marketing ("Activá tus beneficios")
+  // Ocultar otros banners distractores
+  const card = $('notif-prompt-card');
+  if (card) {
+    card.style.display = 'block';
+    // Scroll suave hacia el prompt para asegurar visibilidad
+    setTimeout(() => {
+      try { card.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch { }
+    }, 500);
+  }
+
+  show($('notif-card'), false);      // Ocultar switch pasivo
+  show($('address-banner'), false);  // Ocultar banner domicilio temporalmente
+
+  // Limpiar estados "Deferred" para que no bloqueen la visualización
+  try { localStorage.removeItem(LS_NOTIF_STATE); } catch { }
+});
+
 /* ────────────────────────────────────────────────────────────
    NOTIF OFF — banner pequeño con botón a Perfil
    ──────────────────────────────────────────────────────────── */
