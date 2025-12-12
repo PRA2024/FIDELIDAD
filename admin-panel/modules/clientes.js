@@ -971,20 +971,42 @@ export async function eliminarClienteHandler(clienteId) {
       })
     });
 
-    const result = await response.json();
+    const result = await response.json().catch(() => ({}));
     if (!response.ok || result.ok === false) {
-      throw new Error(result.error || 'Error desconocido del servidor.');
+      throw new Error(result.error || 'El servidor rechazó la eliminación.');
     }
 
-    const ficha = _qs('ficha-contenido');
-    if (ficha && ficha.style.display !== 'none') {
-      ficha.style.display = 'none';
-      UI.openTab('clientes');
-    }
-    UI.showToast("Cliente eliminado con éxito.", "success");
+    // Si todo salió bien en el server, el doc ya debería haberse borrado allí,
+    // pero por si acaso forzamos borrado local si sigue existiendo tras unos segs.
+    // (Opcional, el onSnapshot lo actualizará el UI)
+    UI.showToast("Cliente eliminado (Auth + Datos).", "success");
+
   } catch (error) {
-    console.error("Error al eliminar cliente:", error);
-    UI.showToast(`Error al eliminar: ${error.message}`, "error");
+    console.warn("Fallo API delete-user:", error);
+    // FALLBACK: ¿Borrar solo datos locales?
+    const forceDelete = confirm(
+      `No se pudo contactar al servidor para eliminar el acceso (Login) del usuario.\n\n` +
+      `Error: ${error.message}\n\n` +
+      `¿Deseas FORZAR el borrado de sus DATOS (Ficha) de todos modos? El usuario podría quedar "huerfano" en el sistema de login.`
+    );
+
+    if (forceDelete) {
+      try {
+        await db.collection('clientes').doc(clienteId).delete();
+        UI.showToast("Ficha eliminada localmente (Forzado).", "success");
+      } catch (e2) {
+        UI.showToast("Error borrando ficha local.", "error");
+      }
+    } else {
+      return UI.showToast("Eliminación cancelada.", "info");
+    }
+  }
+
+  // Limpieza UI común
+  const ficha = _qs('ficha-contenido');
+  if (ficha && ficha.style.display !== 'none') {
+    ficha.style.display = 'none';
+    try { UI.openTab('clientes'); } catch { }
   }
 }
 
